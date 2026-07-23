@@ -1,0 +1,5 @@
+build
+coverage
+.adonisjs
+database/schema.ts
+resources/openapi.json
