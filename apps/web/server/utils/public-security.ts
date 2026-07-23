@@ -1,0 +1,32 @@
+export function buildPublicSecurityHeaders(posthogHost?: string) {
+  const posthogOrigin = (() => {
+    try {
+      return posthogHost ? new URL(posthogHost).origin : "";
+    } catch {
+      return "";
+    }
+  })();
+
+  const connectSources = ["'self'", posthogOrigin].filter(Boolean).join(" ");
+
+  return {
+    "Content-Security-Policy": [
+      "default-src 'self'",
+      "base-uri 'self'",
+      `connect-src ${connectSources}`,
+      "font-src 'self' data:",
+      "form-action 'self'",
+      "frame-ancestors 'none'",
+      "img-src 'self' data: blob:",
+      "object-src 'none'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",
+      "upgrade-insecure-requests",
+    ].join("; "),
+    "Cross-Origin-Opener-Policy": "same-origin",
+    "Permissions-Policy": "camera=(), geolocation=(), microphone=()",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+  };
+}
