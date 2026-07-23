@@ -4,6 +4,10 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ## [Unreleased]
 
+### Ajouté
+
+- documentation de l’architecture et de l’arborescence du monorepo.
+
 ## [0.1.0-rc.1] - 2026-07-23
 
 Première préversion traçable destinée à la validation en recette. Elle ne
