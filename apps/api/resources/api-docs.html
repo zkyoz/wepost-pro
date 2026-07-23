@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Documentation API — Wepost.pro</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          'Segoe UI',
+          sans-serif;
+        color: #2f343a;
+        background: #f7f8fa;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+      }
+      a {
+        color: #a83a00;
+      }
+      a:focus-visible,
+      input:focus-visible,
+      summary:focus-visible {
+        outline: 3px solid #f2590d;
+        outline-offset: 3px;
+      }
+      header {
+        padding: 2.5rem max(1.25rem, calc((100% - 76rem) / 2));
+        color: white;
+        background: #2f343a;
+      }
+      header p {
+        max-width: 60rem;
+        color: #bbd9f1;
+      }
+      main {
+        width: min(76rem, calc(100% - 2rem));
+        margin: 0 auto;
+        padding: 2rem 0 4rem;
+      }
+      .toolbar {
+        display: grid;
+        grid-template-columns: minmax(16rem, 1fr) auto;
+        gap: 1rem;
+        align-items: end;
+        margin-bottom: 2rem;
+      }
+      label {
+        display: grid;
+        gap: 0.45rem;
+        font-weight: 700;
+      }
+      input {
+        min-height: 2.8rem;
+        padding: 0.65rem 0.8rem;
+        border: 1px solid #7a8088;
+        border-radius: 0.65rem;
+        font: inherit;
+      }
+      section {
+        margin: 2rem 0;
+      }
+      details {
+        margin: 0.65rem 0;
+        border: 1px solid #d7dce1;
+        border-radius: 0.8rem;
+        background: white;
+        box-shadow: 0 0.25rem 1rem rgb(47 52 58 / 7%);
+      }
+      summary {
+        display: grid;
+        grid-template-columns: 5rem minmax(12rem, 1fr);
+        gap: 0.8rem;
+        align-items: center;
+        padding: 1rem;
+        cursor: pointer;
+        font-weight: 700;
+      }
+      .method {
+        display: inline-flex;
+        justify-content: center;
+        padding: 0.3rem 0.45rem;
+        border-radius: 0.4rem;
+        color: white;
+        background: #2f343a;
+        font-size: 0.78rem;
+        letter-spacing: 0.04em;
+      }
+      .method-post,
+      .method-put,
+      .method-patch {
+        background: #a83a00;
+      }
+      .method-delete {
+        background: #8b1e2d;
+      }
+      .operation {
+        padding: 0 1rem 1.2rem;
+        border-top: 1px solid #e5e8eb;
+      }
+      code {
+        overflow-wrap: anywhere;
+      }
+      .meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.55rem;
+        padding: 0;
+        list-style: none;
+      }
+      .meta li {
+        padding: 0.3rem 0.55rem;
+        border-radius: 999px;
+        background: #eaf3fa;
+      }
+      .error {
+        padding: 1rem;
+        border-left: 0.35rem solid #8b1e2d;
+        background: #fff1f3;
+      }
+      @media (max-width: 42rem) {
+        .toolbar,
+        summary {
+          grid-template-columns: 1fr;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          scroll-behavior: auto !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Documentation API Wepost.pro</h1>
+      <p>
+        Contrat REST généré depuis le routeur AdonisJS. Les routes privées utilisent une session
+        HttpOnly et les écritures sont protégées par un jeton CSRF.
+      </p>
+      <a href="/api/openapi.json">Télécharger la spécification OpenAPI 3.1</a>
+    </header>
+    <main>
+      <div class="toolbar">
+        <label for="search">
+          Rechercher une route
+          <input id="search" type="search" placeholder="Ex. publications, POST, social.manage" />
+        </label>
+        <p id="count" role="status" aria-live="polite">Chargement des routes…</p>
+      </div>
+      <div id="documentation"></div>
+      <noscript>
+        <p class="error">
+          JavaScript est nécessaire pour le catalogue interactif. La
+          <a href="/api/openapi.json">spécification OpenAPI complète</a> reste disponible.
+        </p>
+      </noscript>
+    </main>
+    <script>
+      const container = document.querySelector('#documentation')
+      const search = document.querySelector('#search')
+      const count = document.querySelector('#count')
+      let operations = []
+
+      function element(name, text, className) {
+        const node = document.createElement(name)
+        if (text) node.textContent = text
+        if (className) node.className = className
+        return node
+      }
+
+      function render(filter = '') {
+        const normalized = filter.trim().toLocaleLowerCase('fr')
+        const visible = operations.filter((operation) => operation.search.includes(normalized))
+        container.replaceChildren()
+        const grouped = Map.groupBy(visible, (operation) => operation.tag)
+        for (const [tag, entries] of grouped) {
+          const section = element('section')
+          section.append(element('h2', tag))
+          for (const entry of entries) {
+            const details = element('details')
+            const summary = element('summary')
+            summary.append(
+              element('span', entry.method.toUpperCase(), `method method-${entry.method}`),
+              element('code', entry.path)
+            )
+            const body = element('div', '', 'operation')
+            body.append(
+              element('h3', entry.operation.summary),
+              element('p', entry.operation.description)
+            )
+            const metadata = element('ul', '', 'meta')
+            metadata.append(element('li', `Route : ${entry.operation['x-adonis-route-name']}`))
+            if (entry.operation['x-required-permission']) {
+              metadata.append(
+                element('li', `Permission : ${entry.operation['x-required-permission']}`)
+              )
+            }
+            metadata.append(
+              element('li', entry.operation.security?.length ? 'Session requise' : 'Route publique')
+            )
+            body.append(metadata)
+            details.append(summary, body)
+            section.append(details)
+          }
+          container.append(section)
+        }
+        count.textContent = `${visible.length} route${visible.length > 1 ? 's' : ''} affichée${visible.length > 1 ? 's' : ''}`
+      }
+
+      fetch('/api/openapi.json', { credentials: 'same-origin' })
+        .then((response) => {
+          if (!response.ok) throw new Error(`HTTP ${response.status}`)
+          return response.json()
+        })
+        .then((specification) => {
+          operations = Object.entries(specification.paths).flatMap(([path, methods]) =>
+            Object.entries(methods).map(([method, operation]) => ({
+              path,
+              method,
+              operation,
+              tag: operation.tags?.[0] ?? 'Autres',
+              search: [
+                method,
+                path,
+                operation.summary,
+                operation.description,
+                operation['x-adonis-route-name'],
+                operation['x-required-permission'],
+              ]
+                .filter(Boolean)
+                .join(' ')
+                .toLocaleLowerCase('fr'),
+            }))
+          )
+          render()
+        })
+        .catch((error) => {
+          count.textContent = 'Documentation indisponible'
+          container.replaceChildren(
+            element('p', `Impossible de charger la spécification : ${error.message}`, 'error')
+          )
+        })
+
+      search.addEventListener('input', () => render(search.value))
+    </script>
+  </body>
+</html>
