@@ -2,6 +2,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { format } from 'prettier'
 
 const apiRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const repositoryRoot = resolve(apiRoot, '../..')
@@ -1100,7 +1101,7 @@ const routes = listRoutes()
 const openApiDocument = buildSpecification(routes)
 validateSpecification(openApiDocument)
 const specification = `${JSON.stringify(openApiDocument, null, 2)}\n`
-const catalog = buildCatalog(routes)
+const catalog = await format(buildCatalog(routes), { parser: 'markdown' })
 assertOrWrite(specificationPath, specification)
 assertOrWrite(catalogPath, catalog)
 
