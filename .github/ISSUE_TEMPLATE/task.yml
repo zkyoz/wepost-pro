@@ -1,0 +1,53 @@
+name: Tâche de livraison
+description: Planifier une fonctionnalité, une preuve ou une action opérationnelle
+title: "chore: "
+labels:
+  - task
+body:
+  - type: input
+    id: task
+    attributes:
+      label: Tâche ou domaine
+      placeholder: taskXX, CI, recette, déploiement…
+    validations:
+      required: true
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objectif vérifiable
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Périmètre
+      description: Frontend, API, worker, base, infrastructure ou documentation.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Critères d’acceptation
+      placeholder: |
+        - [ ] …
+        - [ ] …
+    validations:
+      required: true
+  - type: textarea
+    id: tests
+    attributes:
+      label: Tests et preuves attendus
+    validations:
+      required: true
+  - type: textarea
+    id: risks
+    attributes:
+      label: Risques sécurité, RGAA et régression
+    validations:
+      required: true
+  - type: textarea
+    id: rncp
+    attributes:
+      label: Compétences RNCP concernées
+    validations:
+      required: true
