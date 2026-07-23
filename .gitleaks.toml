@@ -1,0 +1,12 @@
+title = "Wepost.pro Gitleaks configuration"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Known deterministic test key and one route-name false positive"
+regexTarget = "line"
+regexes = [
+  '''MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=''',
+  '''router\.get\('schedules/:id', \[LinkedInController, 'scheduleStatus'\]\)''',
+]
