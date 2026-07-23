@@ -1,0 +1,12 @@
+node_modules
+.pnpm-store
+.env
+.DS_Store
+*.log
+.nuxt
+.output
+build
+dist
+coverage
+playwright-report
+test-results
