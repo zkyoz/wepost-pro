@@ -1,0 +1,79 @@
+name: Bogues
+description: Signaler une anomalie reproductible sans donnée sensible
+title: "fix: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Ne publiez aucun secret, cookie, token OAuth ou donnée client. Une
+        vulnérabilité doit être signalée par le canal privé décrit dans
+        `SECURITY.md`.
+  - type: input
+    id: version
+    attributes:
+      label: Version ou SHA
+      description: Tag, SHA ou branche où le problème a été constaté.
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: Environnement
+      options:
+        - Local
+        - CI
+        - Recette
+        - Production
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Comportement observé, sans information sensible.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Comportement attendu
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Gravité estimée
+      options:
+        - Faible
+        - Moyenne
+        - Élevée
+        - Bloquante
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: Impact et utilisateurs concernés
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: Vérifications
+      options:
+        - label: Aucun secret ou donnée personnelle n’apparaît dans ce ticket.
+          required: true
+        - label: J’ai recherché une issue identique.
+          required: true
