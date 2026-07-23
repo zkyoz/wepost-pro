@@ -1,0 +1,6 @@
+.nuxt
+.output
+coverage
+playwright-report
+playwright-report-public
+test-results

@@ -1,0 +1,43 @@
+{
+  "name": "@wepost/web",
+  "version": "0.1.0-rc.1",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "lint": "eslint app e2e server nuxt.config.ts playwright.config.ts playwright.public.config.ts vitest.config.ts && eslint --no-ignore tests",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:public": "playwright test --config playwright.public.config.ts",
+    "generate": "nuxt generate",
+    "i18n:check": "vitest run tests/i18n/messages.spec.ts",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "typecheck": "nuxt typecheck"
+  },
+  "dependencies": {
+    "nuxt": "^4.5.0",
+    "posthog-js": "^1.406.2",
+    "vue": "^3.5.40",
+    "vue-router": "^5.2.0"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "^4.12.1",
+    "@nuxt/eslint": "^1.16.0",
+    "@nuxt/test-utils": "^4.0.3",
+    "@playwright/test": "^1.61.1",
+    "@vitest/coverage-v8": "^4.1.10",
+    "@vue/test-utils": "^2.4.11",
+    "eslint": "^10.7.0",
+    "happy-dom": "^20.11.0",
+    "lighthouse": "^13.4.1",
+    "prettier": "^3.9.6",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.10",
+    "vue-tsc": "^3.3.7"
+  }
+}

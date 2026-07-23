@@ -1,0 +1,34 @@
+{
+  "name": "wepost-pro",
+  "version": "0.1.0-rc.1",
+  "private": true,
+  "packageManager": "pnpm@11.11.0",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @wepost/web --filter @wepost/api dev",
+    "dev:web": "pnpm --filter @wepost/web dev",
+    "dev:api": "pnpm --filter @wepost/api dev",
+    "dev:worker": "pnpm --filter @wepost/worker dev",
+    "build": "pnpm --recursive --if-present build",
+    "lint": "pnpm --recursive --if-present lint",
+    "format:check": "pnpm --recursive --if-present format:check",
+    "i18n:check": "pnpm --filter @wepost/web i18n:check",
+    "typecheck": "pnpm --recursive --if-present typecheck",
+    "test": "pnpm --recursive --if-present test",
+    "test:coverage": "pnpm --recursive --if-present test:coverage",
+    "test:e2e": "pnpm --filter @wepost/web test:e2e",
+    "api:docs:generate": "pnpm --filter @wepost/api docs:generate",
+    "api:docs:check": "pnpm --filter @wepost/api docs:check",
+    "infra:up": "docker compose up -d --wait",
+    "infra:down": "docker compose down",
+    "infra:logs": "docker compose logs -f",
+    "db:migrate": "pnpm --filter @wepost/api exec node ace migration:run",
+    "demo:seed": "pnpm --filter @wepost/api exec node ace dev:seed-demo",
+    "demo:prepare": "pnpm infra:up && pnpm db:migrate && pnpm demo:seed",
+    "backup:database": "pnpm --filter @wepost/api exec node ace backup:database",
+    "backup:restore-drill": "pnpm --filter @wepost/api exec node ace backup:restore-drill",
+    "smoke:health": "node infra/scripts/smoke-health.mjs"
+  }
+}

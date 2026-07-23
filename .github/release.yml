@@ -1,0 +1,27 @@
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+  categories:
+    - title: Fonctionnalités
+      labels:
+        - feature
+        - enhancement
+    - title: Correctifs
+      labels:
+        - bug
+        - fix
+    - title: Sécurité
+      labels:
+        - security
+    - title: Accessibilité
+      labels:
+        - accessibility
+    - title: Documentation et maintenance
+      labels:
+        - documentation
+        - dependencies
+        - chore
+    - title: Autres changements
+      labels:
+        - "*"

@@ -1,0 +1,33 @@
+{
+  "name": "@wepost/worker",
+  "version": "0.1.0-rc.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "lint": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage"
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1092.0",
+    "@aws-sdk/s3-request-presigner": "^3.1092.0",
+    "bullmq": "^5.80.10",
+    "pg": "^8.22.0",
+    "resend": "^6.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "~25.9.5",
+    "@types/pg": "^8.20.0",
+    "@vitest/coverage-v8": "^4.1.10",
+    "prettier": "^3.9.6",
+    "tsx": "^4.23.1",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.10"
+  }
+}
