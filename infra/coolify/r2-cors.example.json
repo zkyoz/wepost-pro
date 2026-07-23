@@ -1,0 +1,9 @@
+[
+  {
+    "AllowedOrigins": ["https://app.wepost.pro"],
+    "AllowedMethods": ["GET", "PUT", "HEAD"],
+    "AllowedHeaders": ["Content-Type"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]
