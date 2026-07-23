@@ -4,6 +4,11 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ## [Unreleased]
 
+## [0.1.0-rc.1] - 2026-07-23
+
+Première préversion traçable destinée à la validation en recette. Elle ne
+constitue pas une mise en production.
+
 ### Ajouté
 
 - documentation OpenAPI 3.1 générée depuis les routes AdonisJS, catalogue des endpoints,
@@ -120,6 +125,7 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 - workflow CI complété avec déclenchement manuel, annulation des exécutions
   obsolètes, délais maximaux et rétention explicite des rapports.
+- versions du monorepo alignées sur `0.1.0-rc.1`.
 
 ### Corrigé
 
@@ -127,7 +133,14 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
   conserver le parcours E2E multi-rôles vert après l’ajout des traductions.
 - hydratation du sélecteur de langue privé fiabilisée afin que le changement
   FR/EN reste interactif après restauration et rechargement de session.
+- génération de la documentation API rendue déterministe après formatage
+  Prettier ;
+- faux positifs Gitleaks limités à une clé de test publique déterministe et à
+  une route LinkedIn explicitement identifiée.
 
 ### Supprimé
 
 - guard API par access tokens et migration `auth_access_tokens` du starter.
+
+[Unreleased]: https://github.com/zkyoz/wepost-pro/compare/v0.1.0-rc.1...HEAD
+[0.1.0-rc.1]: https://github.com/zkyoz/wepost-pro/releases/tag/v0.1.0-rc.1
