@@ -20,24 +20,24 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
-    "nuxt": "^4.5.0",
-    "posthog-js": "^1.406.2",
+    "nuxt": "^4.5.1",
+    "posthog-js": "^1.407.3",
     "vue": "^3.5.40",
     "vue-router": "^5.2.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.12.1",
     "@nuxt/eslint": "^1.16.0",
-    "@nuxt/test-utils": "^4.0.3",
-    "@playwright/test": "^1.61.1",
+    "@nuxt/test-utils": "^4.1.0",
+    "@playwright/test": "^1.62.0",
     "@vitest/coverage-v8": "^4.1.10",
     "@vue/test-utils": "^2.4.11",
-    "eslint": "^10.7.0",
-    "happy-dom": "^20.11.0",
+    "eslint": "^10.8.0",
+    "happy-dom": "^20.11.1",
     "lighthouse": "^13.4.1",
     "prettier": "^3.9.6",
-    "typescript": "~6.0.3",
+    "typescript": "~7.0.2",
     "vitest": "^4.1.10",
-    "vue-tsc": "^3.3.7"
+    "vue-tsc": "^3.3.8"
   }
 }
