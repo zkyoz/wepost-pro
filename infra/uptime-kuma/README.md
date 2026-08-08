@@ -17,4 +17,18 @@ Moniteurs à créer manuellement :
 | Worker heartbeat      | Push      | URL injectée dans `UPTIME_KUMA_WORKER_PUSH_URL` | 60 s       | absence pendant 5 min |
 | Frontend              | HTTP      | `https://app.<env>/`                            | 60 s       | 3 échecs              |
 
-Les noms des moniteurs et notifications doivent contenir l’environnement. Les canaux d’alerte restent un `TODO` à choisir avec l’agence. L’URL Push est un secret : elle reste dans Coolify et ne doit jamais être journalisée.
+Dans Uptime Kuma, `3 échecs` correspond à deux tentatives après le premier
+contrôle en erreur ; `2 échecs` correspond à une tentative. Les alertes sont
+répétées toutes les 15 occurrences hors ligne, soit environ toutes les
+15 minutes avec cet intervalle. Une notification de rétablissement est envoyée
+au retour à l'état opérationnel.
+
+Les noms des moniteurs et notifications doivent contenir l'environnement. Le
+canal local de preuve est un webhook ; les deux canaux et destinataires de
+production restent à valider avant la mise en service. L'URL Push est un
+secret : elle reste dans Coolify et ne doit jamais être journalisée.
+
+Ne pas activer l'enregistrement du corps des réponses d'erreur sur les
+moniteurs de production. L'état HTTP, le composant, l'heure et le
+`correlation_id` suffisent au diagnostic initial et évitent de transmettre une
+stack ou une donnée sensible au canal d'alerte.

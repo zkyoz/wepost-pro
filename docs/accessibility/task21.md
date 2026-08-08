@@ -5,3 +5,7 @@ Le dashboard utilise un tableau avec légende, en-têtes de colonnes et en-tête
 Le bouton d’actualisation est natif et son état désactivé est exposé. Le résultat de l’actualisation et les erreurs sont annoncés dans une zone `aria-live="polite"`. Aucun rafraîchissement automatique, clignotement ou animation imposée n’est utilisé.
 
 Les contrôles automatisés couvrent la présence de la page, du tableau et un audit axe du contenu principal. VoiceOver, zoom 200 %, Tab/Shift+Tab complet et reflow exact à 320 px restent à vérifier en préproduction.
+
+Le correctif d'isolation des routes de health ne modifie aucun composant ni
+parcours d'interface. Les conclusions d'accessibilité de la tâche 21 restent
+inchangées.
