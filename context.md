@@ -130,10 +130,10 @@ Les fichiers `task01.md` à `task23.md` constituent les prompts d’exécution d
 - Application responsive et compatible avec les navigateurs modernes.
 - Les bases de développement, recette et production doivent être distinctes.
 
-### Versions relevées dans le dépôt le 22 juillet 2026
+### Versions de référence actualisées le 8 août 2026
 
-- Node.js : 24.x via `.nvmrc`, avec un minimum `>=24.0.0` dans le manifeste racine.
-- Nuxt : 4.5.0.
+- Node.js : 24.x via `.nvmrc`, avec une plage `>=24.11.0 <25.0.0` dans le manifeste racine.
+- Nuxt : 4.5.2, mise à jour corrective de sécurité validée le 8 août 2026.
 - Vue : 3.5.40.
 - AdonisJS : 7.3.5 résolu, avec `^7.3.3` déclaré.
 - TypeScript : 6.0.3.
