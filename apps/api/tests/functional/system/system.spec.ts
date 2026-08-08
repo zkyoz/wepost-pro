@@ -1,4 +1,5 @@
 import User from '#models/user'
+import SessionMiddleware from '@adonisjs/session/session_middleware'
 import { test } from '@japa/runner'
 
 async function user(role: 'admin' | 'agency' | 'client', suffix: string) {
@@ -13,6 +14,21 @@ async function user(role: 'admin' | 'agency' | 'client', suffix: string) {
 }
 
 test.group('System supervision', () => {
+  test('keeps liveness independent from the session store', async ({ client }) => {
+    const originalHandle = SessionMiddleware.prototype.handle
+    SessionMiddleware.prototype.handle = async () => {
+      throw new Error('session_store_unavailable')
+    }
+
+    try {
+      const response = await client.get('/health/live')
+      response.assertStatus(200)
+      response.assertBodyContains({ status: 'ok' })
+    } finally {
+      SessionMiddleware.prototype.handle = originalHandle
+    }
+  })
+
   test('reports readiness and a correlation id without requiring authentication', async ({
     client,
   }) => {

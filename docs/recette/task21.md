@@ -15,7 +15,14 @@ Version : arbre local du 23/07/2026. SHA et préproduction à compléter.
 | SYS-09 | Page accessible        | tableau textuel et axe sans erreur bloquante  | Playwright    | OK      |
 | SYS-10 | Alerte réelle          | notification reçue après dépendance simulée   | préproduction | À faire |
 | SYS-11 | Smoke post-déploiement | live et ready verts                           | script local  | OK      |
+| SYS-12 | Redis indisponible      | live reste 200, ready passe 503               | incident local contrôlé | OK après correctif |
 
 Le smoke local du 23/07/2026 a obtenu `ok` sur `/health/live` et `ready` sur
 `/health/ready`. SYS-08 reste partiel tant qu'une relance sur une file Redis
 persistante n'a pas été exécutée en préproduction.
+
+Le 08/08/2026, un arrêt contrôlé de Redis a d'abord montré que le middleware de
+session rendait aussi le liveness indisponible. La chaîne session/CSRF/auth a
+été limitée à `/api/v1`. Après correctif, liveness reste indépendant de Redis
+et la readiness porte le signal d'indisponibilité de la dépendance. La recette
+de préproduction reste à exécuter.

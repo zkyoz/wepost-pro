@@ -32,6 +32,25 @@ Capture générée : `docs/evidence/task21/screenshots/system-status-desktop.png
 
 Le test de relance HTTP emploie volontairement la file mémoire isolée : il vérifie le refus contrôlé du pilote qui ne permet pas la relance. Le chemin BullMQ persistant exige un job échoué réel en préproduction.
 
+## Exercice local du 8 août 2026
+
+Quatre moniteurs Uptime Kuma locaux ont été configurés à 60 secondes :
+frontend, API liveness, readiness JSON et heartbeat worker. Un webhook local a
+reçu le test, l'alerte readiness à 13:44:14, l'alerte worker à 13:44:35 et
+l'alerte liveness à 13:44:44 après un arrêt contrôlé de Redis.
+
+L'exercice a révélé que le middleware de session Redis traversait les routes de
+health. Le correctif limite session, CSRF et initialisation auth au groupe
+`/api/v1`. Les captures locales sont conservées dans
+`docs/evidence/task21/screenshots/c4-1-2/`. Elles représentent quelques minutes
+de test et non une disponibilité de production.
+
+![Quatre sondes locales en ligne](screenshots/c4-1-2/01-uptime-kuma-etat-nominal.jpg)
+
+![Alerte après arrêt contrôlé de Redis](screenshots/c4-1-2/02-alerte-redis-readiness.jpg)
+
+![Retour au vert après rétablissement](screenshots/c4-1-2/03-retablissement.jpg)
+
 ## Limites
 
-CPU et RAM concernent le processus API, pas tout le VPS. Les métriques HTTP sont une fenêtre mémoire et ne remplacent pas une base temporelle. Les canaux d’alerte, le domaine Uptime Kuma, la recette, le SHA et la simulation d’une alerte réelle restent à configurer en préproduction.
+CPU et RAM concernent le processus API, pas tout le VPS. Les métriques HTTP sont une fenêtre mémoire et ne remplacent pas une base temporelle. L'alerte réelle est validée localement ; les canaux d'alerte, le domaine Uptime Kuma, la recette et le SHA restent à configurer en préproduction.

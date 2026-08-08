@@ -478,3 +478,7 @@ router
       .use(middleware.permission({ permissions: [PERMISSIONS.projectsManage] }))
   })
   .prefix('/api/v1')
+  .use(middleware.session())
+  .use(middleware.shield())
+  .use(middleware.initializeAuth())
+  .use(middleware.silentAuth())

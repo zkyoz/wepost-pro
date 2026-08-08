@@ -4,6 +4,14 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ## [Unreleased]
 
+### Fixed
+
+- Isolé les endpoints de health du middleware de session Redis afin que le liveness reste disponible pendant une panne de dépendance.
+
+### Changed
+
+- Documenté les seuils de supervision, la répétition des alertes et l'exercice local Uptime Kuma de C4.1.2.
+
 ### Ajouté
 
 - documentation de l’architecture et de l’arborescence du monorepo.
