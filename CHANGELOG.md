@@ -14,6 +14,10 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 - Structuré la collecte des anomalies avec un template GitHub complet, des
   statuts, des niveaux de criticité, des priorités et la fiche réelle
   `BUG-022`.
+- Documenté la chaîne de correction de `BUG-022`, sa validation avant/après et
+  l'anomalie résiduelle de readiness `BUG-024`.
+- Ajouté une répétition automatique de déploiement du build API compilé et ses
+  smoke tests après les contrôles CI.
 
 ### Ajouté
 

@@ -2,18 +2,18 @@
 
 ## Identification
 
-| Champ | Valeur |
-| --- | --- |
-| Issue | [GitHub #22](https://github.com/zkyoz/wepost-pro/issues/22) |
-| Détection | 8 août 2026 à 13:44, Europe/Paris |
-| Consignation GitHub | 12 août 2026, rétrospective et explicitement signalée |
-| Source | Uptime Kuma pendant un exercice contrôlé de panne Redis |
-| Version affectée | arbre local `be6fcac`, parent du correctif original `536cf88` |
-| Environnement | local, macOS, API AdonisJS, Redis 7, Uptime Kuma v2 |
-| Composants | API, Redis, supervision |
-| Criticité | S2 majeure |
-| Priorité | P1 |
-| Statut | `status:validation` - recette encore requise |
+| Champ               | Valeur                                                        |
+| ------------------- | ------------------------------------------------------------- |
+| Issue               | [GitHub #22](https://github.com/zkyoz/wepost-pro/issues/22)   |
+| Détection           | 8 août 2026 à 13:44, Europe/Paris                             |
+| Consignation GitHub | 12 août 2026, rétrospective et explicitement signalée         |
+| Source              | Uptime Kuma pendant un exercice contrôlé de panne Redis       |
+| Version affectée    | arbre local `be6fcac`, parent du correctif original `536cf88` |
+| Environnement       | local, macOS, API AdonisJS, Redis 7, Uptime Kuma v2           |
+| Composants          | API, Redis, supervision                                       |
+| Criticité           | S2 majeure                                                    |
+| Priorité            | P1                                                            |
+| Statut              | `status:validation` - recette encore requise                  |
 
 ## Description et reproduction
 
@@ -74,3 +74,24 @@ temporairement `SessionMiddleware.handle` par une erreur
 Les URLs Push, secrets Redis, cookies, stacks complètes et corps techniques ont
 été retirés des preuves publiques. La fermeture de l'issue attend la
 reproduction du contrôle sur l'environnement de recette.
+
+## Validation complémentaire du 12 août 2026
+
+Le scénario a été rejoué localement sur l'arbre `06bb3fa`, qui contient le
+correctif fusionné `46b1032`. En état nominal, les deux sondes ont répondu
+HTTP 200. Après `docker compose stop redis`, `/health/live` a répondu
+`{"status":"ok"}` avec HTTP 200 : le symptôme exact de BUG-022 n'est donc plus
+reproductible.
+
+La validation a aussi révélé que `/health/ready` dépassait la fenêtre de
+10 secondes au lieu de retourner rapidement HTTP 503. Ce comportement distinct
+est suivi dans
+[`BUG-024`](https://github.com/zkyoz/wepost-pro/issues/24). Redis a été
+redémarré sain et la readiness est revenue à HTTP 200.
+
+Le build API compilé a ensuite été lancé localement avec
+`NODE_ENV=production` et `GIT_SHA=46b1032`. Les smoke tests nominaux ont réussi :
+`/health/live` en 250,79 ms et `/health/ready` en 52,15 ms. Cette répétition ne
+remplace pas la recette Coolify. La dernière prérelease publiée,
+`v0.1.0-rc.1`, ne contient pas le correctif ; une nouvelle release attend la
+validation en recette.
