@@ -11,6 +11,9 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 ### Changed
 
 - Documenté les seuils de supervision, la répétition des alertes et l'exercice local Uptime Kuma de C4.1.2.
+- Structuré la collecte des anomalies avec un template GitHub complet, des
+  statuts, des niveaux de criticité, des priorités et la fiche réelle
+  `BUG-022`.
 
 ### Ajouté
 
