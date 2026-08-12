@@ -295,6 +295,10 @@ doivent être protégées, sans push direct ni force-push. Les versions suivent
 Semantic Versioning ; une préversion `v0.x.y-rc.n` ne signifie pas qu’une
 recette de production a été validée.
 
+Le [journal des versions et déploiements](docs/releases/version-register.md)
+relie chaque version à son tag, son commit, son statut de déploiement et la
+documentation de ses correctifs.
+
 Le workflow GitHub Actions exécute formatage, lint, TypeScript, tests,
 couverture, E2E, axe, builds, audit des dépendances, Gitleaks et CodeQL.
 Consulter [CONTRIBUTING.md](CONTRIBUTING.md) avant toute contribution.

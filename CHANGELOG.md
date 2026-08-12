@@ -6,7 +6,10 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
-- Isolé les endpoints de health du middleware de session Redis afin que le liveness reste disponible pendant une panne de dépendance.
+- Isolé les endpoints de health du middleware de session Redis afin que le
+  liveness reste disponible pendant une panne de dépendance
+  ([BUG-022](https://github.com/zkyoz/wepost-pro/issues/22),
+  [PR #21](https://github.com/zkyoz/wepost-pro/pull/21)).
 
 ### Changed
 
@@ -21,6 +24,9 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 - Priorisé les recommandations de maintenance C4.3.1 à partir des anomalies,
   des KPI de supervision et des limites des retours utilisateurs disponibles,
   avec délais, coûts indicatifs et critères de validation.
+- Ajouté un journal C4.3.2 reliant versions, dates, tags, commits, releases,
+  validations, déploiements et documentation des correctifs sans assimiler une
+  prérelease à une production.
 
 ### Ajouté
 
@@ -30,7 +36,8 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 - mise à jour de Nuxt 4.5.0 vers 4.5.2 et verrouillage des versions corrigées
   de huit dépendances transitives ; l’audit pnpm complet du 8 août 2026 ne
-  détecte plus de vulnérabilité connue.
+  détecte plus de vulnérabilité connue
+  ([PR #20](https://github.com/zkyoz/wepost-pro/pull/20)).
 
 ## [0.1.0-rc.1] - 2026-07-23
 
