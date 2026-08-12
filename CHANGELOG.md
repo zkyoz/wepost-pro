@@ -18,6 +18,9 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
   l'anomalie résiduelle de readiness `BUG-024`.
 - Ajouté une répétition automatique de déploiement du build API compilé et ses
   smoke tests après les contrôles CI.
+- Priorisé les recommandations de maintenance C4.3.1 à partir des anomalies,
+  des KPI de supervision et des limites des retours utilisateurs disponibles,
+  avec délais, coûts indicatifs et critères de validation.
 
 ### Ajouté
 
