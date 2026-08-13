@@ -4,6 +4,10 @@ import type { Project, ProjectListMeta } from "~/types/project";
 import { PUBLICATION_STATUS_LABELS } from "~/types/publication";
 import type { SupervisionSummary } from "~/types/supervision";
 import { addCalendarDays, dateKey } from "~/utils/calendar";
+import {
+  DEFAULT_REQUEST_TIMEOUT_MS,
+  withRequestTimeout,
+} from "~/utils/request-timeout";
 
 definePageMeta({ middleware: "auth" });
 const { t, locale } = useLocale();
@@ -74,28 +78,55 @@ async function loadDashboard() {
   loading.value = true;
   dashboardError.value = "";
   let successfulRequests = 0;
-
-  try {
-    const response = await projectsApi.list({ page: 1, status: "active" });
-    projects.value = response.data.slice(0, 5);
-    projectMeta.value = response.meta;
-    successfulRequests += 1;
-  } catch {
-    projects.value = [];
-  }
+  let failedRequests = 0;
 
   const today = dateKey(new Date());
-  try {
-    const response = await calendarApi.list({
-      start: `${today}T00:00`,
-      end: `${addCalendarDays(today, 14)}T23:59`,
-      timezone:
-        Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris",
-      includeUndated: false,
-      page: 1,
-      perPage: 100,
-    });
-    upcomingEvents.value = response.data
+  const projectsRequest = withRequestTimeout(
+    (signal) => projectsApi.list({ page: 1, status: "active" }, { signal }),
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  );
+  const calendarRequest = withRequestTimeout(
+    (signal) =>
+      calendarApi.list(
+        {
+          start: `${today}T00:00`,
+          end: `${addCalendarDays(today, 14)}T23:59`,
+          timezone:
+            Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Paris",
+          includeUndated: false,
+          page: 1,
+          perPage: 100,
+        },
+        { signal },
+      ),
+    DEFAULT_REQUEST_TIMEOUT_MS,
+  );
+  const supervisionRequest = canManage.value
+    ? withRequestTimeout(
+        (signal) => supervisionApi.summary({}, { signal }),
+        DEFAULT_REQUEST_TIMEOUT_MS,
+      )
+    : Promise.resolve(null);
+
+  const [projectsResult, calendarResult, supervisionResult] =
+    await Promise.allSettled([
+      projectsRequest,
+      calendarRequest,
+      supervisionRequest,
+    ]);
+
+  if (projectsResult.status === "fulfilled") {
+    projects.value = projectsResult.value.data.slice(0, 5);
+    projectMeta.value = projectsResult.value.meta;
+    successfulRequests += 1;
+  } else {
+    projects.value = [];
+    projectMeta.value = null;
+    failedRequests += 1;
+  }
+
+  if (calendarResult.status === "fulfilled") {
+    upcomingEvents.value = calendarResult.value.data
       .filter((event) => event.scheduledAt)
       .sort(
         (left, right) =>
@@ -104,22 +135,25 @@ async function loadDashboard() {
       )
       .slice(0, 6);
     successfulRequests += 1;
-  } catch {
+  } else {
     upcomingEvents.value = [];
+    failedRequests += 1;
   }
 
   if (canManage.value) {
-    try {
-      const response = await supervisionApi.summary();
-      supervision.value = response.data;
+    if (supervisionResult.status === "fulfilled" && supervisionResult.value) {
+      supervision.value = supervisionResult.value.data;
       successfulRequests += 1;
-    } catch {
+    } else {
       supervision.value = null;
+      failedRequests += 1;
     }
   }
 
   if (!successfulRequests) {
     dashboardError.value = t("dashboard.unavailable");
+  } else if (failedRequests) {
+    dashboardError.value = t("dashboard.partiallyUnavailable");
   }
   loading.value = false;
 }
@@ -135,7 +169,9 @@ function eventDate(value: string | null) {
   }).format(new Date(value));
 }
 
-await loadDashboard();
+onMounted(() => {
+  void loadDashboard();
+});
 </script>
 
 <template>
@@ -167,9 +203,21 @@ await loadDashboard();
         </div>
       </header>
 
-      <p v-if="dashboardError" class="error-summary" role="alert">
-        {{ dashboardError }}
-      </p>
+      <div
+        v-if="dashboardError"
+        class="error-summary dashboard-error"
+        role="alert"
+      >
+        <p>{{ dashboardError }}</p>
+        <button
+          class="button-secondary"
+          type="button"
+          :disabled="loading"
+          @click="loadDashboard"
+        >
+          {{ loading ? t("dashboard.loading") : t("dashboard.retry") }}
+        </button>
+      </div>
       <p v-if="loading" class="dashboard-loading" role="status">
         {{ t("dashboard.loading") }}
       </p>

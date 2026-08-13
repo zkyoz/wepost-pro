@@ -12,11 +12,14 @@ export function useProjectsApi(api: typeof $fetch = useNuxtApp().$api) {
   }
 
   return {
-    list: (filters: {
-      page?: number;
-      q?: string;
-      status?: ProjectStatus | "";
-    }) => {
+    list: (
+      filters: {
+        page?: number;
+        q?: string;
+        status?: ProjectStatus | "";
+      },
+      options: { signal?: AbortSignal } = {},
+    ) => {
       const query = Object.fromEntries(
         Object.entries(filters).filter(
           ([, value]) => value !== "" && value !== undefined,
@@ -24,6 +27,7 @@ export function useProjectsApi(api: typeof $fetch = useNuxtApp().$api) {
       );
       return api<{ data: Project[]; meta: ProjectListMeta }>("/projects", {
         query,
+        ...(options.signal ? { signal: options.signal } : {}),
       });
     },
     get: (id: string) => api<{ data: Project }>(`/projects/${id}`),
