@@ -29,3 +29,17 @@ Détail : [`docs/bugs/BUG-022-health-liveness-redis.md`](../../bugs/BUG-022-heal
 `BUG-024` reste ouverte : la readiness dépasse 10 secondes sans Redis. Elle ne
 doit pas apparaître comme corrigée avant l'existence d'un correctif, d'un test,
 d'une PR, d'une recette et d'une version publiée.
+
+## SUP-001 - Chargement du tableau de bord après inscription
+
+- source : retour ponctuel du porteur-test, reproduit ensuite de manière
+  contrôlée ;
+- commit correctif : `f0f581e` ;
+- résultat local : session visible, attente bornée à 5 secondes, erreur
+  actionnable et relance réussie ;
+- tests : 4/4 ciblés, 104/104 frontend, 2/2 Playwright desktop/mobile, typage,
+  lint et build réussis ;
+- détail :
+  [`docs/support/SUP-001-dashboard-loading-after-registration.md`](../../support/SUP-001-dashboard-loading-after-registration.md) ;
+- état de livraison : correction locale de la PR #23 ; CI, recette Coolify et
+  version publiée encore requises.

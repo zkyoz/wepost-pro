@@ -6,6 +6,9 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
+- Borné à cinq secondes le chargement des données du tableau de bord après
+  inscription, conservé la session visible en cas d'échec et ajouté une action
+  de relance avec tests desktop/mobile (`SUP-001`, commit `f0f581e`).
 - Isolé les endpoints de health du middleware de session Redis afin que le
   liveness reste disponible pendant une panne de dépendance
   ([BUG-022](https://github.com/zkyoz/wepost-pro/issues/22),
@@ -27,6 +30,8 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 - Ajouté un journal C4.3.2 reliant versions, dates, tags, commits, releases,
   validations, déploiements et documentation des correctifs sans assimiler une
   prérelease à une production.
+- Documenté la collaboration de support C4.3.3, le retour initial, la cause
+  technique, la répartition des responsabilités et les preuves de résolution.
 
 ### Ajouté
 

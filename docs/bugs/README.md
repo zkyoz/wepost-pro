@@ -41,15 +41,15 @@ la priorité.
 
 ## Statuts
 
-| Label | Signification |
-| --- | --- |
-| `status:triage` | signal reçu, reproduction et impact à vérifier |
-| `status:confirmed` | bogue reproduit et qualifié |
-| `status:in-progress` | correctif et test de non-régression en cours |
-| `status:review` | Pull Request ouverte et contrôles en cours |
-| `status:validation` | correctif intégré dans `develop`, recette requise |
-| `status:blocked` | traitement bloqué, motif documenté dans l'issue |
-| `status:resolved` | correction validée sur l'environnement visé |
+| Label                | Signification                                     |
+| -------------------- | ------------------------------------------------- |
+| `status:triage`      | signal reçu, reproduction et impact à vérifier    |
+| `status:confirmed`   | bogue reproduit et qualifié                       |
+| `status:in-progress` | correctif et test de non-régression en cours      |
+| `status:review`      | Pull Request ouverte et contrôles en cours        |
+| `status:validation`  | correctif intégré dans `develop`, recette requise |
+| `status:blocked`     | traitement bloqué, motif documenté dans l'issue   |
+| `status:resolved`    | correction validée sur l'environnement visé       |
 
 Une seule étiquette `status:*` doit être active. L'issue reste ouverte jusqu'au
 statut `resolved`, puis elle est fermée avec la version, le SHA et la preuve de
@@ -57,12 +57,12 @@ validation.
 
 ## Criticité et priorité
 
-| Criticité | Définition |
-| --- | --- |
-| `severity:S1-blocking` | indisponibilité globale, risque de sécurité, perte ou corruption de données, publication dupliquée |
-| `severity:S2-major` | fonction essentielle indisponible ou diagnostic opérationnel trompeur, sans contournement acceptable |
-| `severity:S3-medium` | dégradation limitée avec contournement utilisable |
-| `severity:S4-low` | gêne faible, anomalie visuelle ou documentaire sans blocage métier |
+| Criticité              | Définition                                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------------------------- |
+| `severity:S1-blocking` | indisponibilité globale, risque de sécurité, perte ou corruption de données, publication dupliquée   |
+| `severity:S2-major`    | fonction essentielle indisponible ou diagnostic opérationnel trompeur, sans contournement acceptable |
+| `severity:S3-medium`   | dégradation limitée avec contournement utilisable                                                    |
+| `severity:S4-low`      | gêne faible, anomalie visuelle ou documentaire sans blocage métier                                   |
 
 La criticité mesure l'impact. La priorité fixe l'ordre de traitement après
 prise en compte de la fréquence, du nombre d'utilisateurs, de l'environnement,
@@ -94,3 +94,8 @@ secondaire reçoit le label `duplicate` et un lien vers la fiche principale.
 
 Le cas réel [`BUG-022`](BUG-022-health-liveness-redis.md) illustre cette
 structure.
+
+Le cas de support
+[`SUP-001`](../support/SUP-001-dashboard-loading-after-registration.md)
+documente également un retour utilisateur interne, sa reproduction contrôlée,
+la séparation des contributions et un correctif local en attente de livraison.
