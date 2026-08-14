@@ -130,6 +130,9 @@ export default {
     loading: "Chargement du tableau de bord…",
     unavailable:
       "Les informations du tableau de bord sont momentanément indisponibles.",
+    partiallyUnavailable:
+      "Certaines informations du tableau de bord sont momentanément indisponibles.",
+    retry: "Réessayer",
     profile: "Profil connecté",
     displayName: "Nom affiché",
     email: "Adresse e-mail",

@@ -1,15 +1,39 @@
-name: Bogues
+name: Bogue
 description: Signaler une anomalie reproductible sans donnée sensible
-title: "fix: "
+title: "[BUG] "
 labels:
   - bug
+  - status:triage
 body:
   - type: markdown
     attributes:
       value: |
-        Ne publiez aucun secret, cookie, token OAuth ou donnée client. Une
-        vulnérabilité doit être signalée par le canal privé décrit dans
-        `SECURITY.md`.
+        Merci de rechercher une anomalie similaire avant de créer la fiche.
+        Ne publiez aucun secret, cookie, token OAuth, stack complète ou donnée
+        client. Une vulnérabilité doit être signalée par le canal privé décrit
+        dans `SECURITY.md`.
+  - type: input
+    id: detected_at
+    attributes:
+      label: Date et heure de détection
+      description: Avec le fuseau horaire lorsque l'heure est connue.
+      placeholder: 2026-08-12 14:30 Europe/Paris
+    validations:
+      required: true
+  - type: dropdown
+    id: detection_source
+    attributes:
+      label: Source de détection
+      options:
+        - Retour utilisateur
+        - Recette ou test manuel
+        - Test automatisé ou CI
+        - Supervision ou alerte
+        - Logs applicatifs
+        - Revue de code
+        - Autre
+    validations:
+      required: true
   - type: input
     id: version
     attributes:
@@ -28,38 +52,70 @@ body:
         - Production
     validations:
       required: true
+  - type: dropdown
+    id: component
+    attributes:
+      label: Composant concerné
+      options:
+        - Frontend Nuxt
+        - API AdonisJS
+        - Worker BullMQ
+        - PostgreSQL
+        - Redis
+        - Cloudflare R2
+        - Réseau social ou e-mail
+        - CI ou déploiement
+        - Supervision
+        - Documentation
+        - Inconnu
+    validations:
+      required: true
   - type: textarea
     id: description
     attributes:
       label: Description
-      description: Comportement observé, sans information sensible.
+      description: Résumé factuel du dysfonctionnement, sans information sensible.
     validations:
       required: true
   - type: textarea
-    id: expected
+    id: preconditions
     attributes:
-      label: Comportement attendu
+      label: Préconditions
+      description: État, rôle, données et configuration nécessaires avant la reproduction.
     validations:
       required: true
   - type: textarea
     id: reproduction
     attributes:
-      label: Reproduction
+      label: Étapes de reproduction
       placeholder: |
         1. …
         2. …
         3. …
     validations:
       required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Résultat attendu
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Résultat obtenu
+      description: Comportement réellement observé et fréquence constatée.
+    validations:
+      required: true
   - type: dropdown
     id: severity
     attributes:
-      label: Gravité estimée
+      label: Criticité estimée
       options:
-        - Faible
-        - Moyenne
-        - Élevée
-        - Bloquante
+        - S1 - Bloquante
+        - S2 - Majeure
+        - S3 - Moyenne
+        - S4 - Faible
     validations:
       required: true
   - type: textarea
@@ -68,6 +124,28 @@ body:
       label: Impact et utilisateurs concernés
     validations:
       required: true
+  - type: textarea
+    id: error_message
+    attributes:
+      label: Message ou code d'erreur
+      description: Message exact et expurgé. Ne jamais joindre de secret ou de donnée personnelle.
+      render: text
+  - type: textarea
+    id: useful_logs
+    attributes:
+      label: Logs utiles et identifiant de corrélation
+      description: Extraits minimaux, expurgés, datés et limités à la reproduction.
+      render: text
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Captures et preuves
+      description: Glisser les captures expurgées ou ajouter les liens vers la CI et la supervision.
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Contournement connu
+      description: Indiquer « aucun » si aucune solution temporaire n'est connue.
   - type: checkboxes
     id: safety
     attributes:
@@ -75,5 +153,5 @@ body:
       options:
         - label: Aucun secret ou donnée personnelle n’apparaît dans ce ticket.
           required: true
-        - label: J’ai recherché une issue identique.
+        - label: J’ai recherché une issue identique, ouverte ou fermée.
           required: true

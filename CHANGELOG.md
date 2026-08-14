@@ -6,11 +6,32 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
-- Isolé les endpoints de health du middleware de session Redis afin que le liveness reste disponible pendant une panne de dépendance.
+- Borné à cinq secondes le chargement des données du tableau de bord après
+  inscription, conservé la session visible en cas d'échec et ajouté une action
+  de relance avec tests desktop/mobile (`SUP-001`, commit `f0f581e`).
+- Isolé les endpoints de health du middleware de session Redis afin que le
+  liveness reste disponible pendant une panne de dépendance
+  ([BUG-022](https://github.com/zkyoz/wepost-pro/issues/22),
+  [PR #21](https://github.com/zkyoz/wepost-pro/pull/21)).
 
 ### Changed
 
 - Documenté les seuils de supervision, la répétition des alertes et l'exercice local Uptime Kuma de C4.1.2.
+- Structuré la collecte des anomalies avec un template GitHub complet, des
+  statuts, des niveaux de criticité, des priorités et la fiche réelle
+  `BUG-022`.
+- Documenté la chaîne de correction de `BUG-022`, sa validation avant/après et
+  l'anomalie résiduelle de readiness `BUG-024`.
+- Ajouté une répétition automatique de déploiement du build API compilé et ses
+  smoke tests après les contrôles CI.
+- Priorisé les recommandations de maintenance C4.3.1 à partir des anomalies,
+  des KPI de supervision et des limites des retours utilisateurs disponibles,
+  avec délais, coûts indicatifs et critères de validation.
+- Ajouté un journal C4.3.2 reliant versions, dates, tags, commits, releases,
+  validations, déploiements et documentation des correctifs sans assimiler une
+  prérelease à une production.
+- Documenté la collaboration de support C4.3.3, le retour initial, la cause
+  technique, la répartition des responsabilités et les preuves de résolution.
 
 ### Ajouté
 
@@ -18,9 +39,13 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Sécurité
 
+- mise à jour de l'override transitif `nanoid` de 3.3.17 vers 3.3.18 après
+  l'avis élevé `GHSA-2v37-7h3g-55p8` ; audit local final sans vulnérabilité
+  connue ;
 - mise à jour de Nuxt 4.5.0 vers 4.5.2 et verrouillage des versions corrigées
   de huit dépendances transitives ; l’audit pnpm complet du 8 août 2026 ne
-  détecte plus de vulnérabilité connue.
+  détecte plus de vulnérabilité connue
+  ([PR #20](https://github.com/zkyoz/wepost-pro/pull/20)).
 
 ## [0.1.0-rc.1] - 2026-07-23
 

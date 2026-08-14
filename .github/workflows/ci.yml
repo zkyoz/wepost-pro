@@ -167,3 +167,80 @@ jobs:
         with:
           languages: javascript-typescript
       - uses: github/codeql-action/analyze@v4
+
+  deployment-rehearsal:
+    name: Deployment rehearsal
+    runs-on: ubuntu-latest
+    needs: [quality, e2e, secret-scan, codeql]
+    timeout-minutes: 15
+    env:
+      NODE_ENV: production
+      PORT: 3334
+      HOST: 127.0.0.1
+      APP_URL: http://127.0.0.1:3334
+      GIT_SHA: ${{ github.sha }}
+      SESSION_DRIVER: redis
+      SESSION_COOKIE_NAME: wepost_session_deployment_rehearsal
+      SESSION_COOKIE_DOMAIN: ""
+      SESSION_AGE: 15m
+      EMAIL_QUEUE_DRIVER: redis
+      EMAIL_QUEUE_NAME: wepost-jobs-deployment-rehearsal
+      LIMITER_STORE: redis
+      REDIS_KEY_PREFIX: wepost:deployment-rehearsal
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: wepost_test
+          POSTGRES_USER: wepost
+          POSTGRES_PASSWORD: wepost
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U wepost -d wepost_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+          cache-dependency-path: pnpm-lock.yaml
+      - run: pnpm install --frozen-lockfile
+      - name: Build the API deployment artifact
+        run: pnpm --filter @wepost/api build
+      - name: Start the compiled API
+        working-directory: apps/api/build
+        run: |
+          node bin/server.js > /tmp/wepost-api.log 2>&1 &
+          echo $! > /tmp/wepost-api.pid
+      - name: Wait for the deployed liveness
+        run: |
+          for attempt in {1..30}; do
+            if curl --fail --silent http://127.0.0.1:3334/health/live > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/wepost-api.log
+          exit 1
+      - name: Run post-deployment smoke tests
+        run: node infra/scripts/smoke-health.mjs http://127.0.0.1:3334
+      - name: Upload deployment logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-rehearsal-logs
+          path: /tmp/wepost-api.log
+          if-no-files-found: error
+          retention-days: 14

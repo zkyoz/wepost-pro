@@ -3,13 +3,14 @@ import type { Publication } from "~/types/publication";
 
 export function useCalendarApi(api: typeof $fetch = useNuxtApp().$api) {
   return {
-    list: (filters: CalendarFilters) =>
+    list: (filters: CalendarFilters, options: { signal?: AbortSignal } = {}) =>
       api<CalendarResponse>("/calendar", {
         query: Object.fromEntries(
           Object.entries(filters).filter(
             ([, value]) => value !== "" && value !== undefined,
           ),
         ),
+        ...(options.signal ? { signal: options.signal } : {}),
       }),
     move: async (
       publicationId: string,

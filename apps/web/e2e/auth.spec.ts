@@ -21,6 +21,50 @@ async function logout(page: Page) {
 }
 
 test.describe("session authentication", () => {
+  test("keeps the session visible and offers a retry when dashboard data fails", async ({
+    page,
+  }, testInfo) => {
+    const email = `support-${testInfo.project.name}@example.com`;
+    const failingRoutes = ["**/api/v1/projects**", "**/api/v1/calendar**"];
+
+    for (const routePattern of failingRoutes) {
+      await page.route(routePattern, (route) => route.abort("timedout"));
+    }
+
+    await page.goto("/auth/register");
+    await waitForNuxt(page);
+    await page.getByLabel("Nom affiché").fill("Support Wepost");
+    await page.getByLabel("Adresse e-mail").fill(email);
+    await page
+      .locator("#register-password")
+      .fill("correct-horse-battery-staple");
+    await page
+      .locator("#password-confirmation")
+      .fill("correct-horse-battery-staple");
+    await page.getByRole("button", { name: "Créer mon compte" }).click();
+
+    await expect(page).toHaveURL(/\/dashboard$/);
+    await expect(
+      page.getByRole("heading", { name: "Bonjour, Support" }),
+    ).toBeVisible();
+    await expect(page.getByText(email)).toBeVisible();
+    await expect(page.getByRole("alert")).toContainText(
+      "Les informations du tableau de bord sont momentanément indisponibles.",
+    );
+    await expect(page.getByRole("button", { name: "Réessayer" })).toBeVisible();
+
+    for (const routePattern of failingRoutes) {
+      await page.unroute(routePattern);
+    }
+    await page.getByRole("button", { name: "Réessayer" }).click();
+
+    await expect(page.getByRole("alert")).toBeHidden();
+    await expect(page.getByText("Chargement du tableau de bord…")).toBeHidden();
+    await expect(
+      page.getByText("Authentification opérationnelle"),
+    ).toBeVisible();
+  });
+
   test("registers, restores the session, logs out and protects private pages", async ({
     page,
   }, testInfo) => {
