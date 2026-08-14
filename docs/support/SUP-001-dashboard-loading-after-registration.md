@@ -8,7 +8,7 @@
 - priorité : P1 avant pilote utilisateur ;
 - correctif : commit `f0f581e` sur la branche
   `codex/docs-c4-2-1-anomalies` ;
-- validation : locale réussie, CI et recette Coolify encore requises ;
+- validation : locale et CI réussies ; recette Coolify encore requise ;
 - issue GitHub : création en attente de réauthentification GitHub.
 
 Ce cas ne provient pas d'un client externe. Dans le projet individuel WePost,
@@ -68,7 +68,7 @@ Le commit `f0f581e` :
 | Support de niveau 1                | conserve les inconnues, recherche les doublons, reformule le parcours, qualifie S3/P1 et définit les critères d'acceptation | fiche SUP-001 et scénario reproductible sans donnée sensible |
 | Expertise technique et maintenance | analyse la session et le chargement, isole la cause, implémente le timeout, le parallélisme, l'erreur et la relance         | commit `f0f581e` et tests de non-régression                  |
 | Validation automatisée             | vérifie l'utilitaire, la session, l'interface desktop/mobile, le typage, le lint et le build                                | résultats reproductibles et captures expurgées               |
-| Responsable de livraison           | doit publier l'issue, obtenir la CI verte, faire la recette Coolify et rattacher la version livrée                          | clôture différée tant que ces preuves n'existent pas         |
+| Responsable de livraison           | publie la branche, contrôle la CI et doit encore publier l'issue, faire la recette Coolify et rattacher la version livrée   | CI `31757294992` verte ; clôture différée avant recette      |
 
 Dans ce projet individuel, plusieurs fonctions sont exercées successivement par
 la même personne. Le tableau décrit donc une séparation de responsabilités et
@@ -92,9 +92,13 @@ et de l'état de chargement, puis la persistance du bloc d'authentification.
 
 ## Limites de livraison
 
-Le problème est corrigé et validé localement, mais il ne doit pas être déclaré
-résolu en production : WePost ne possède pas encore de déploiement persistant.
-La création de l'issue et les commentaires GitHub sont également en attente
-d'une session autorisée en écriture. La clôture définitive exige la CI de la PR,
-une recette sur le SHA livré et l'identification de la version contenant le
-correctif.
+Le problème est corrigé localement et la CI GitHub du commit `4543758` est
+entièrement verte : qualité, couvertures, builds, audit, CodeQL, Gitleaks,
+tests navigateur/accessibilité et répétition de déploiement ont réussi dans le
+[run `31757294992`](https://github.com/zkyoz/wepost-pro/actions/runs/31757294992).
+
+Il ne doit toutefois pas être déclaré résolu en production : WePost ne possède
+pas encore de déploiement persistant. La création de l'issue et les commentaires
+GitHub sont également en attente d'une session autorisée en écriture. La
+clôture définitive exige une recette sur le SHA livré et l'identification de la
+version contenant le correctif.
