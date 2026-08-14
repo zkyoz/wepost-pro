@@ -39,6 +39,9 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Sécurité
 
+- mise à jour de l'override transitif `nanoid` de 3.3.17 vers 3.3.18 après
+  l'avis élevé `GHSA-2v37-7h3g-55p8` ; audit local final sans vulnérabilité
+  connue ;
 - mise à jour de Nuxt 4.5.0 vers 4.5.2 et verrouillage des versions corrigées
   de huit dépendances transitives ; l’audit pnpm complet du 8 août 2026 ne
   détecte plus de vulnérabilité connue
