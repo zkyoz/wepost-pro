@@ -183,7 +183,7 @@ export default class InstagramController {
       })
       const success = new URL(instagramConfig.successUrl)
       success.searchParams.set('instagram', 'connected')
-      response.redirect(success.toString())
+      response.redirect().withQs(false).toPath(success.toString())
     } catch (error) {
       logger.warn({
         event: 'social.instagram_oauth_failed',

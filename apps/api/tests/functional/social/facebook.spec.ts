@@ -1,3 +1,4 @@
+import facebookConfig from '#config/facebook'
 import AuditLog from '#models/audit_log'
 import Project from '#models/project'
 import ScheduledPublication from '#models/scheduled_publication'
@@ -102,6 +103,9 @@ test.group('Facebook publishing HTTP', () => {
       .withSession(start.session())
       .redirects(0)
     callback.assertStatus(302)
+    const destination = new URL(facebookConfig.successUrl)
+    destination.searchParams.set('facebook', 'connected')
+    callback.assertHeader('location', destination.toString())
     const connected = await SocialAccount.query().where('agencyId', agencyId).firstOrFail()
     assert.equal(connected.externalAccountId, '1234567890')
     assert.notInclude(connected.encryptedAccessToken!, 'mock-page-access-token')

@@ -188,7 +188,7 @@ export default class LinkedInController {
       })
       const success = new URL(linkedinConfig.successUrl)
       success.searchParams.set('linkedin', 'connected')
-      response.redirect(success.toString())
+      response.redirect().withQs(false).toPath(success.toString())
     } catch (error) {
       logger.warn({
         event: 'social.linkedin_oauth_failed',

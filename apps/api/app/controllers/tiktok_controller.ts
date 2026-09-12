@@ -210,7 +210,7 @@ export default class TikTokController {
       })
       const success = new URL(tiktokConfig.successUrl)
       success.searchParams.set('tiktok', 'connected')
-      response.redirect(success.toString())
+      response.redirect().withQs(false).toPath(success.toString())
     } catch (error) {
       logger.warn({
         event: 'social.tiktok_oauth_failed',

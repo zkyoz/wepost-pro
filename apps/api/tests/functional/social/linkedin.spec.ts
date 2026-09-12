@@ -1,3 +1,4 @@
+import linkedinConfig from '#config/linkedin'
 import AuditLog from '#models/audit_log'
 import MediaAsset from '#models/media_asset'
 import Project from '#models/project'
@@ -126,6 +127,9 @@ test.group('LinkedIn publishing HTTP', () => {
       .withSession(start.session())
       .redirects(0)
     callback.assertStatus(302)
+    const destination = new URL(linkedinConfig.successUrl)
+    destination.searchParams.set('linkedin', 'connected')
+    callback.assertHeader('location', destination.toString())
     const connected = await SocialAccount.query().where('agencyId', agencyId).firstOrFail()
     assert.equal(connected.externalAccountId, '123456789')
     assert.notInclude(connected.encryptedAccessToken!, 'mock-linkedin-access-token')

@@ -1,3 +1,4 @@
+import pinterestConfig from '#config/pinterest'
 import AuditLog from '#models/audit_log'
 import MediaAsset from '#models/media_asset'
 import Project from '#models/project'
@@ -131,6 +132,9 @@ test.group('Pinterest publishing HTTP', () => {
       .withSession(start.session())
       .redirects(0)
     callback.assertStatus(302)
+    const destination = new URL(pinterestConfig.successUrl)
+    destination.searchParams.set('pinterest', 'connected')
+    callback.assertHeader('location', destination.toString())
     const connected = await SocialAccount.query().where('agencyId', agencyId).firstOrFail()
     assert.equal(connected.externalAccountId, '987654321')
     assert.deepInclude(connected.metadataJson, {

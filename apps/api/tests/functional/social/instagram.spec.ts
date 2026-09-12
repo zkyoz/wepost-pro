@@ -1,3 +1,4 @@
+import instagramConfig from '#config/instagram'
 import AuditLog from '#models/audit_log'
 import MediaAsset from '#models/media_asset'
 import Project from '#models/project'
@@ -130,6 +131,9 @@ test.group('Instagram publishing HTTP', () => {
       .withSession(start.session())
       .redirects(0)
     callback.assertStatus(302)
+    const destination = new URL(instagramConfig.successUrl)
+    destination.searchParams.set('instagram', 'connected')
+    callback.assertHeader('location', destination.toString())
     const connected = await SocialAccount.query().where('agencyId', agencyId).firstOrFail()
     assert.equal(connected.externalAccountId, '17841400000000000')
     assert.notInclude(connected.encryptedAccessToken!, 'mock-instagram-access-token')

@@ -202,7 +202,7 @@ export default class PinterestController {
       })
       const success = new URL(pinterestConfig.successUrl)
       success.searchParams.set('pinterest', 'connected')
-      response.redirect(success.toString())
+      response.redirect().withQs(false).toPath(success.toString())
     } catch (error) {
       logger.warn({
         event: 'social.pinterest_oauth_failed',
