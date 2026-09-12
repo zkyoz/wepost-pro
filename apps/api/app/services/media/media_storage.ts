@@ -1,4 +1,5 @@
 import mediaConfig from '#config/media'
+import { LocalFileStore } from '#services/media/local_file_store'
 import env from '#start/env'
 import {
   DeleteObjectCommand,
@@ -25,6 +26,9 @@ export interface MediaStorage {
 
 type LocalObject = { bytes: Buffer; contentType: string }
 const localObjects = new Map<string, LocalObject>()
+const localFiles = mediaConfig.localDirectory
+  ? new LocalFileStore(mediaConfig.localDirectory)
+  : null
 
 function localToken(key: string, purpose: 'upload' | 'read') {
   return encryption.encrypt(
@@ -71,10 +75,11 @@ class LocalMediaStorage implements MediaStorage {
   }
 
   async read(key: string) {
-    return localObjects.get(key) ?? null
+    return getLocalObject(key) ?? null
   }
 
   async delete(key: string) {
+    localFiles?.delete(key)
     localObjects.delete(key)
   }
 }
@@ -142,10 +147,12 @@ export function getMediaStorage() {
 }
 
 export function putLocalObject(key: string, object: LocalObject) {
+  if (localFiles) return localFiles.put(key, object)
   localObjects.set(key, object)
 }
 
 export function getLocalObject(key: string) {
+  if (localFiles) return localFiles.get(key)
   return localObjects.get(key)
 }
 
