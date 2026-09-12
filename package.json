@@ -7,6 +7,10 @@
     "node": ">=24.11.0 <25.0.0"
   },
   "scripts": {
+    "demo:oral:prepare": "node infra/scripts/demo.mjs prepare",
+    "demo:oral:build": "node infra/scripts/demo.mjs build",
+    "demo:oral:start": "node infra/scripts/demo.mjs start",
+    "demo:oral:check": "node infra/scripts/demo.mjs check",
     "dev": "pnpm --parallel --filter @wepost/web --filter @wepost/api dev",
     "dev:web": "pnpm --filter @wepost/web dev",
     "dev:api": "pnpm --filter @wepost/api dev",

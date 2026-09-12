@@ -169,6 +169,19 @@ copié dans une issue ou affiché dans une capture.
 
 ## Données de démonstration
 
+Pour l’oral BC03, utiliser le [profil local isolé](docs/manuals/oral-demo.md) :
+
+```bash
+nvm use
+pnpm demo:oral:prepare
+pnpm demo:oral:build
+pnpm demo:oral:start
+```
+
+Ce profil démarre les builds Nuxt/API/worker, utilise ses propres volumes
+PostgreSQL/Redis, conserve les médias sur disque et capture les e-mails
+localement. Les fournisseurs sociaux et l’IA y sont explicitement simulés.
+
 Pour préparer une base locale avec trois rôles et des données représentatives :
 
 ```bash

@@ -12,6 +12,20 @@ function number(name: string) {
 }
 
 export function loadConfig() {
+  const emailDriver = process.env.EMAIL_DELIVERY_DRIVER || "resend";
+  if (!["resend", "file"].includes(emailDriver)) {
+    throw new Error("EMAIL_DELIVERY_DRIVER invalide");
+  }
+  if (
+    emailDriver === "file" &&
+    (process.env.NODE_ENV !== "development" ||
+      !["127.0.0.1", "localhost"].includes(process.env.DB_HOST || "") ||
+      !["127.0.0.1", "localhost"].includes(process.env.REDIS_HOST || ""))
+  ) {
+    throw new Error(
+      "La boîte e-mail locale est réservée à la démonstration en développement local",
+    );
+  }
   const facebookDriver = required("FACEBOOK_API_DRIVER");
   const instagramDriver = required("INSTAGRAM_API_DRIVER");
   const linkedinDriver = required("LINKEDIN_API_DRIVER");
@@ -36,7 +50,10 @@ export function loadConfig() {
       password: required("DB_PASSWORD"),
       database: required("DB_DATABASE"),
     },
-    resendApiKey: required("RESEND_API_KEY"),
+    emailDriver,
+    emailOutboxDirectory:
+      emailDriver === "file" ? required("EMAIL_OUTBOX_DIRECTORY") : "",
+    resendApiKey: emailDriver === "resend" ? required("RESEND_API_KEY") : "",
     emailFrom: required("EMAIL_FROM"),
     webAppUrl: required("WEB_APP_URL"),
     concurrency: process.env.WORKER_CONCURRENCY

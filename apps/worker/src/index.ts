@@ -4,6 +4,7 @@ import { loadConfig } from "./config.js";
 import { emailBackoffDelay, processNotificationEmail } from "./processor.js";
 import { PostgresNotificationRepository } from "./repository.js";
 import { ResendEmailSender } from "./resend_sender.js";
+import { FileEmailSender } from "./file_sender.js";
 import type { NotificationEmailJob } from "./types.js";
 import {
   FacebookPublisher,
@@ -55,7 +56,10 @@ const config = loadConfig();
 const pool = new pg.Pool(config.database);
 const dependencies = {
   repository: new PostgresNotificationRepository(pool),
-  sender: new ResendEmailSender(config.resendApiKey, config.emailFrom),
+  sender:
+    config.emailDriver === "file"
+      ? new FileEmailSender(config.emailOutboxDirectory)
+      : new ResendEmailSender(config.resendApiKey, config.emailFrom),
   webAppUrl: config.webAppUrl,
 };
 const mediaLoader =
@@ -268,7 +272,10 @@ const heartbeatTimer = setInterval(
 );
 heartbeatTimer.unref();
 
+let shuttingDown = false;
 async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
   console.info(JSON.stringify({ event: "worker.stopping", signal }));
   clearInterval(heartbeatTimer);
   await worker.close();

@@ -6,6 +6,13 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
+- Rétabli l’interactivité du frontend compilé avec des empreintes CSP pour
+  les scripts Nuxt et l’origine API configurée.
+- Supprimé la retransmission de `code` et `state` dans les cinq redirections
+  OAuth de succès, avec assertions de non-régression HTTP.
+- Ajouté un stockage média local persistant optionnel pour les répétitions.
+- Rendu l’arrêt du worker idempotent en cas de signaux rapprochés.
+
 - Borné à cinq secondes le chargement des données du tableau de bord après
   inscription, conservé la session visible en cas d'échec et ajouté une action
   de relance avec tests desktop/mobile (`SUP-001`, commit `f0f581e`).
@@ -35,6 +42,10 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Ajouté
 
+- Profil oral local isolé : PostgreSQL/Redis dédiés, lanceur des trois builds,
+  comptes de démonstration et capture privée des e-mails du worker.
+- [Manuel de répétition BC03](docs/manuals/oral-demo.md) et
+  [diagnostic des correctifs](docs/bugs/bc03-demo-runtime.md).
 - documentation de l’architecture et de l’arborescence du monorepo.
 
 ### Sécurité
