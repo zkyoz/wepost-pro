@@ -4,6 +4,12 @@ export default defineEventHandler((event) => {
   const config = useRuntimeConfig(event);
   const headers = buildPublicSecurityHeaders(
     String(config.public.posthogHost || ""),
+    {
+      apiBase: String(config.public.apiBase || ""),
+      upgradeInsecureRequests: String(config.public.siteUrl || "").startsWith(
+        "https://",
+      ),
+    },
   );
 
   for (const [name, value] of Object.entries(headers)) {
