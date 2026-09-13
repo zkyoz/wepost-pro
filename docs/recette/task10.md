@@ -65,3 +65,16 @@ les jetons, mais bloque l’utilisation d’un compte réel dans ce mode.
 Les appels LinkedIn des tests automatisés sont simulés ; la connexion du
 navigateur utilise le fournisseur réel. Aucun post réel n’est créé par ces
 contrôles. Voir la [fiche du correctif](../bugs/linkedin-oauth-state-expiry.md).
+
+## Recette réelle du profil personnel
+
+Le 13 septembre 2026, le parcours création agence, approbation via le compte
+client de démonstration, puis envoi via l’agence a abouti à une publication
+textuelle réelle. WePost indique « Publiée » et une tentative réussie ; le
+texte « Publication de test depuis WePost. » a également été vérifié sur
+LinkedIn, sous le profil personnel autorisé.
+
+Référence distante : `urn:li:share:7504938972733861889`. Cette recette valide
+l’envoi texte du profil personnel ; elle ne remplace pas LI-20 pour une Page
+entreprise et une image, ni les contrôles de préproduction. Le détail et les
+limites sont consignés dans les [preuves de la tâche 10](../evidence/task10.md#premier-envoi-linkedin-réel--13-septembre-2026).

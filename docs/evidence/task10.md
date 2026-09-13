@@ -76,3 +76,30 @@ n’est pas déployée en production.
 La [fiche de bogue](../bugs/linkedin-oauth-state-expiry.md) décrit le périmètre
 et les limites. La CI précédente de la PR #29 comporte des échecs distincts ;
 les résultats locaux ci-dessus ne sont pas présentés comme une CI verte.
+
+## Premier envoi LinkedIn réel — 13 septembre 2026
+
+Recette manuelle dans le navigateur intégré, sur les builds locaux de la
+branche `codex/bc03-demo` (correctif exécutable `6dd960d`, HEAD `ede6a34`
+au début de l’essai). Le titulaire a demandé un simple post de test sur son
+profil personnel, qu’il pourra supprimer ensuite.
+
+- Texte publié, sans image : « Publication de test depuis WePost. »
+- Publication locale : `3255e3de-8012-4f4c-bec3-946166edb9ad`, version 1.
+- Parcours réalisé par l’agent avec les comptes de démonstration : création
+  agence → en cours → demande de validation → connexion client → approbation
+  de la version 1 → reconnexion agence → validation LinkedIn → envoi confirmé.
+- Compte distant : profil personnel réel du titulaire, pas le profil simulé.
+- Résultat WePost : statut « Publiée », une tentative affichée « Réussie ».
+- Identifiant retourné : `urn:li:share:7504938972733861889`.
+- Vérification externe : [post LinkedIn](https://www.linkedin.com/feed/update/urn:li:share:7504938972733861889/)
+  ouvert dans le navigateur, auteur et texte conformes, visibilité publique.
+- Capture du post vérifiée visuellement ; journal console WePost consulté
+  sans erreur ni avertissement sur ce parcours.
+
+Il s’agit d’un test réel de publication textuelle, pas d’une approbation par
+un client externe : les deux rôles WePost ont été joués pour la recette.
+La présence du post est vérifiée au moment de l’essai ; son lien peut devenir
+indisponible si le titulaire le supprime. Aucun second envoi, test de média,
+Page entreprise ou réseau X n’est effectué ici. Les e-mails restent dans
+la boîte locale. Ce succès ne résout pas les échecs CI signalés plus haut.
