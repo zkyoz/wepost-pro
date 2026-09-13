@@ -63,8 +63,15 @@ n’est pas déployée en production.
 - Formatage des deux fichiers TypeScript, lint ciblé, TypeScript API et build
   API : réussis.
 - Après redémarrage : frontend, `/health/live` et `/health/ready` HTTP 200.
-- Parcours navigateur : WePost agence → Continuer avec LinkedIn → page
-  d’identification LinkedIn. Retour réel à vérifier après la saisie du titulaire.
+- Parcours navigateur : WePost agence → Continuer avec LinkedIn →
+  identification LinkedIn effectuée par le titulaire → retour à WePost.
+  Le profil affiche « Connexion réelle à LinkedIn », le statut `connected`
+  et `openid`, `profile`, `w_member_social`. Capture vérifiée dans le navigateur
+  intégré, sans token ni code OAuth visible. Aucune publication n’a été lancée.
+- Le journal navigateur consulté contient un message `XMLHttpRequest` issu
+  d’un script `static.licdn.com` pendant l’identification ; il n’a pas empêché
+  le retour réussi. Aucune erreur provenant de WePost n’apparaît dans ce relevé.
+- Correctif : commit `6dd960d`, poussé sur `codex/bc03-demo`.
 
 La [fiche de bogue](../bugs/linkedin-oauth-state-expiry.md) décrit le périmètre
 et les limites. La CI précédente de la PR #29 comporte des échecs distincts ;

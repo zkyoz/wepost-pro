@@ -8,8 +8,8 @@
 - Composant : contrôleur OAuth LinkedIn, profils personnels et Pages.
 - Impact : connexion refusée après l’autorisation sur LinkedIn. Proposition
   de classement S2/P1 : parcours essentiel bloqué, sans perte de données observée.
-- Statut : correctif testé localement, non fusionné ; retour OAuth réel à
-  vérifier après la nouvelle connexion du titulaire.
+- Statut : correctif `6dd960d` testé localement, poussé et non fusionné ;
+  retour OAuth réel vérifié après la nouvelle connexion du titulaire.
 
 ## Reproduction et cause
 
@@ -47,9 +47,11 @@ Source du contrat : [chiffrement AdonisJS](https://docs.adonisjs.com/guides/secu
 - API corrigée chargée dans la démo locale ; frontend, liveness et readiness
   vérifiés en HTTP 200. Données et clés de démonstration conservées.
 
-Les tests HTTP simulent les réponses LinkedIn. Le navigateur atteint de
-nouveau la page d’identification officielle ; la validation du retour réel
-nécessite la saisie du titulaire. Aucune publication réelle n’a été lancée.
+Les tests HTTP simulent les réponses LinkedIn. La vérification navigateur,
+elle, utilise LinkedIn réel : après identification par le titulaire, WePost
+affiche son profil connecté, la mention « Connexion réelle à LinkedIn » et
+les permissions `openid`, `profile`, `w_member_social`. L’erreur d’expiration
+n’est plus affichée. Aucune publication réelle n’a été lancée.
 
 ## Livraison et limites
 

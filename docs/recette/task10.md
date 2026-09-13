@@ -58,8 +58,10 @@ les jetons, mais bloque l’utilisation d’un compte réel dans ce mode.
   nouveaux cas temporels ; l’expiration à dix minutes et le rejeu sont refusés.
 - Suite API complète : 207 tests réussis sur la base dédiée `wepost_test`.
 - Build API corrigé redémarré localement : frontend, liveness et readiness
-  répondent HTTP 200. La connexion réelle est relancée dans le navigateur ;
-  la saisie LinkedIn par le titulaire reste nécessaire pour vérifier son retour.
+  répondent HTTP 200. Après identification par le titulaire sur LinkedIn,
+  le navigateur revient à WePost et affiche son profil avec la mention
+  « Connexion réelle à LinkedIn » et les permissions attendues.
 
-Les appels LinkedIn des tests sont simulés ; aucun post réel n’est créé par
-ces contrôles. Voir la [fiche du correctif](../bugs/linkedin-oauth-state-expiry.md).
+Les appels LinkedIn des tests automatisés sont simulés ; la connexion du
+navigateur utilise le fournisseur réel. Aucun post réel n’est créé par ces
+contrôles. Voir la [fiche du correctif](../bugs/linkedin-oauth-state-expiry.md).
