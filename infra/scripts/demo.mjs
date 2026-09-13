@@ -4,6 +4,7 @@ import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
+import { linkedinLiveEnvironment } from "./demo-linkedin-env.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const demoDirectory = join(root, ".demo");
@@ -117,7 +118,7 @@ async function configure() {
 }
 
 await configure();
-const env = {
+let env = {
   ...process.env,
   ...parseEnv(await readFile(environmentFile, "utf8")),
   // SSR and the browser share the Mac's timezone during the local oral demo.
@@ -125,6 +126,18 @@ const env = {
   MEDIA_LOCAL_DIRECTORY: join(demoDirectory, "media"),
 };
 const apiDirectory = join(root, "apps/api");
+if (command === "start-linkedin" || command === "check-linkedin") {
+  let contents;
+  try {
+    contents = await readFile(join(demoDirectory, "linkedin.env"), "utf8");
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    throw new Error(
+      "Créez .demo/linkedin.env à partir de infra/demo/linkedin.env.example et renseignez vos accès en local.",
+    );
+  }
+  env = linkedinLiveEnvironment(env, parseEnv(contents));
+}
 
 if (command === "prepare") {
   await run("docker", ["compose", "-f", composeFile, "up", "-d", "--wait"]);
@@ -138,7 +151,7 @@ if (command === "prepare") {
   });
 } else if (command === "build") {
   await run("pnpm", ["build"], { env });
-} else if (command === "start") {
+} else if (command === "start" || command === "start-linkedin") {
   const processes = [
     [join(root, "apps/api/build/bin/server.js"), apiDirectory, { ...env }],
     [
@@ -181,7 +194,9 @@ if (command === "prepare") {
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
   console.log(
-    "WePost : http://127.0.0.1:3000 — données de démonstration, fournisseurs simulés.",
+    command === "start-linkedin"
+      ? "WePost : http://127.0.0.1:3000 — LinkedIn réel ; autres réseaux simulés ; e-mails dans la boîte locale."
+      : "WePost : http://127.0.0.1:3000 — données de démonstration, fournisseurs simulés.",
   );
 } else if (command === "check") {
   for (const [label, url] of [
@@ -193,8 +208,14 @@ if (command === "prepare") {
     if (!response.ok) throw new Error(`${label} : HTTP ${response.status}`);
     console.log(`${label} : HTTP ${response.status}`);
   }
+} else if (command === "check-linkedin") {
+  console.log(
+    "Configuration LinkedIn présente. Aucun secret affiché, aucun appel externe effectué. L’autorisation OAuth et un envoi réel restent à valider.",
+  );
 } else if (command === "stop") {
   await run("docker", ["compose", "-f", composeFile, "stop"]);
 } else {
-  throw new Error("Commande attendue : prepare, build, start, check ou stop.");
+  throw new Error(
+    "Commande attendue : prepare, build, start, start-linkedin, check-linkedin, check ou stop.",
+  );
 }

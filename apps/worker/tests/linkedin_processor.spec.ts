@@ -241,6 +241,28 @@ describe("LinkedIn publication worker", () => {
     ).toEqual([60_000, 300_000, 900_000]);
     expect(socialBackoffDelay(1, "other")).toBe(-1);
   });
+
+  it.each([undefined, "mock"])(
+    "blocks a non-live account (%s) before a real publication",
+    async (accountDriver) => {
+      const record = validRecord();
+      record.accountDriver = accountDriver;
+      const repository = new MemoryRepository(record);
+      const publisher = new MockLinkedInPublisher();
+      await expect(
+        processLinkedInPublication(job(), {
+          repository,
+          publisher,
+          decryptToken: () => "token",
+          expectedDriver: "linkedin",
+        }),
+      ).rejects.toBeInstanceOf(UnrecoverableError);
+      expect(publisher.calls).toBe(0);
+      expect(repository.failures[0]?.error.code).toBe(
+        "account_driver_mismatch",
+      );
+    },
+  );
 });
 
 describe("LinkedIn adapter", () => {
@@ -315,6 +337,33 @@ describe("LinkedIn adapter", () => {
     expect(JSON.parse(options.body).author).toBe(
       "urn:li:organization:123456789",
     );
+  });
+
+  it("publishes under the authenticated personal author, not an organization", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(null, {
+        status: 201,
+        headers: { "x-restli-id": "urn:li:share:456" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    await adapter.publish({
+      ...base,
+      pageId: "urn:li:person:abc_123-z",
+      media: [],
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0]![1].body).author).toBe(
+      "urn:li:person:abc_123-z",
+    );
+  });
+
+  it("rejects malformed author ids before any external call", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    await expect(
+      adapter.publish({ ...base, pageId: "https://example.com", media: [] }),
+    ).rejects.toMatchObject({ code: "invalid_author" });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("initializes, uploads and attaches one private image", async () => {

@@ -24,3 +24,23 @@ Une contrainte unique protège l’idempotence interne. Les tentatives persisten
 ## Tests
 
 Les tests couvrent state/rejeu, chiffrement et renouvellement, client en écriture, validation, médias, version/empreinte, token expiré, upload, hôte inattendu, timeout, 429, 5xx, erreurs définitives, idempotence, retry et révocation. Aucun appel LinkedIn réel n’est exécuté en CI.
+
+## Extension personnelle BC03
+
+Le `state` lie également le type de cible. Pour un profil personnel, le serveur
+obtient l’identifiant depuis `GET /v2/userinfo` avec le jeton OAuth ; aucun
+identifiant de personne fourni par le navigateur n’est accepté. L’auteur
+enregistré est `urn:li:person:<sub>`. Les permissions demandées sont `openid`,
+`profile` et `w_member_social`, sans demande d’e-mail ni de scope de Page.
+
+Le compte conserve le pilote ayant réalisé sa connexion. API et worker
+refusent le mélange des modes réel et simulé. Le formulaire avertit avant
+l’envoi public d’un compte réel. Les secrets du lanceur sont isolés dans
+`.demo/linkedin.env`, ignoré par Git ; seuls trois paramètres LinkedIn sont
+acceptés, sans possibilité d’écraser la base ou les clés de chiffrement.
+
+La lecture média locale est réservée au développement avec PostgreSQL/Redis
+sur loopback et chemin absolu. Les clés sont hachées, les liens symboliques
+refusés et la taille du fichier lue est bornée. Cette variante ne remplace pas
+R2 en production. Le risque résiduel de résultat distant incertain décrit
+plus haut demeure : vérifier LinkedIn avant une relance après incident.

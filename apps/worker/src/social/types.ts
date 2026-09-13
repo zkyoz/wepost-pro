@@ -72,6 +72,7 @@ export type ScheduledFacebookPublication = {
   payloadHash: string;
   accountId: string;
   accountStatus: string;
+  accountDriver?: string;
   accountExpiresAt: Date | null;
   externalAccountId: string;
   encryptedAccessToken: string | null;

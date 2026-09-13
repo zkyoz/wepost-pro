@@ -6,6 +6,9 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
+- Corrigé la conversion de la date proposée dans le panneau LinkedIn vers
+  l’heure locale du navigateur.
+
 - Rétabli l’interactivité du frontend compilé avec des empreintes CSP pour
   les scripts Nuxt et l’origine API configurée.
 - Supprimé la retransmission de `code` et `state` dans les cinq redirections
@@ -42,6 +45,13 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Ajouté
 
+- Connexion LinkedIn personnelle via OpenID Connect et `w_member_social`,
+  en conservant le parcours Page entreprise existant.
+- Démarrage LinkedIn réel explicite pour la démo locale, lecture des médias
+  persistants par le worker et séparation des comptes réels et simulés.
+- Actualisation du statut et lien vers le post LinkedIn pour un identifiant
+  distant valide. Une publication réelle reste à vérifier avec des accès autorisés.
+
 - Profil oral local isolé : PostgreSQL/Redis dédiés, lanceur des trois builds,
   comptes de démonstration et capture privée des e-mails du worker.
 - [Manuel de répétition BC03](docs/manuals/oral-demo.md) et
@@ -49,6 +59,10 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 - documentation de l’architecture et de l’arborescence du monorepo.
 
 ### Sécurité
+
+- Overrides ciblés de `browserslist` 4.28.7, `js-yaml` 4.3.2 et `svgo` 4.1.0 :
+  audit de cette branche sans alerte élevée/critique, quatre alertes modérées
+  restantes. Cette mesure ne remplace pas une analyse de toutes les dépendances.
 
 - mise à jour de l'override transitif `nanoid` de 3.3.17 vers 3.3.18 après
   l'avis élevé `GHSA-2v37-7h3g-55p8` ; audit local final sans vulnérabilité

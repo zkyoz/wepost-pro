@@ -28,3 +28,24 @@ Version testée : arbre local du 22/07/2026. Environnement : macOS, PostgreSQL, 
 | LI-22 | Alerte 24 h                 | monitoring production           | alerte si échecs > 5 %                  | à configurer               | À faire |
 
 Captures à joindre : connexion sans token, organisation/scopes, validation, statut, tentatives, publication de test, run CI et recette clavier/VoiceOver.
+
+## Extension BC03 — profil personnel et démarrage local réel
+
+Cette extension ne remplace pas les résultats historiques ci-dessus.
+
+| Scénario | Résultat vérifié |
+| --- | --- |
+| Profil personnel sans identifiant de Page | Callback simulé HTTP 302, identité issue du client OAuth, jeton chiffré ; test API |
+| Scopes personnels | `openid profile w_member_social`, sans scopes d’organisation ; test du client officiel avec réponses HTTP simulées |
+| Rejeu, cible ambiguë, écriture client | Requêtes refusées ; tests API |
+| Compte simulé présenté au mode réel | Programmation refusée, aucun post externe ; tests API et worker |
+| Auteur personnel et Page | Corps Posts API distincts, identifiant invalide refusé ; tests worker |
+| Image stockée sur le Mac | Lecture du format privé de l’API, clés hachées, refus des liens symboliques ; tests worker |
+| Envoi public confirmé | Annulation de la confirmation empêche la programmation ; test frontend |
+| Statut et lien distant | Actualisation et lien LinkedIn dérivé d’un identifiant distant validé ; test frontend |
+| Connexion réelle et publication sur LinkedIn | Non exécutées : accès développeur et autorisation du compte nécessaires |
+
+Procédure à suivre : [premier envoi LinkedIn réel](../manuals/linkedin-live-demo.md).
+Aucune migration de schéma ; reconnexion requise pour passer du compte simulé
+au compte réel. Le simple retour au mode simulé ne supprime ni les données ni
+les jetons, mais bloque l’utilisation d’un compte réel dans ce mode.

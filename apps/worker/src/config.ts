@@ -1,3 +1,5 @@
+import { isAbsolute } from "node:path";
+
 function required(name: string) {
   const value = process.env[name];
   if (!value) throw new Error(`Variable d’environnement manquante : ${name}`);
@@ -29,12 +31,31 @@ export function loadConfig() {
   const facebookDriver = required("FACEBOOK_API_DRIVER");
   const instagramDriver = required("INSTAGRAM_API_DRIVER");
   const linkedinDriver = required("LINKEDIN_API_DRIVER");
+  if (linkedinDriver !== "mock" && linkedinDriver !== "linkedin") {
+    throw new Error("LINKEDIN_API_DRIVER invalide");
+  }
+  const localMediaDirectory =
+    process.env.MEDIA_STORAGE_DRIVER === "local"
+      ? required("MEDIA_LOCAL_DIRECTORY")
+      : "";
+  if (
+    localMediaDirectory &&
+    (process.env.NODE_ENV !== "development" ||
+      !["127.0.0.1", "localhost"].includes(process.env.DB_HOST || "") ||
+      !["127.0.0.1", "localhost"].includes(process.env.REDIS_HOST || "") ||
+      !isAbsolute(localMediaDirectory))
+  ) {
+    throw new Error(
+      "Le stockage média local du worker est réservé au développement local.",
+    );
+  }
   const pinterestDriver = required("PINTEREST_API_DRIVER");
   const tiktokDriver = required("TIKTOK_API_DRIVER");
   const queueName = required("EMAIL_QUEUE_NAME");
   const queuePrefix = `${required("REDIS_KEY_PREFIX")}:queue`;
   return {
     queueName,
+    localMediaDirectory,
     queuePrefix,
     redis: {
       host: required("REDIS_HOST"),
@@ -84,7 +105,7 @@ export function loadConfig() {
       appSecret: required("INSTAGRAM_APP_SECRET"),
     },
     linkedin: {
-      driver: linkedinDriver,
+      driver: linkedinDriver as "mock" | "linkedin",
       apiVersion: required("LINKEDIN_API_VERSION"),
     },
     pinterest: {

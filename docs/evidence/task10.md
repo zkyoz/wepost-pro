@@ -34,3 +34,21 @@ Le scénario E2E LinkedIn et son scan axe sont intégrés au parcours multi-rés
 ## Preuves externes restantes
 
 Ajouter le SHA, les runs CI rouge/vert, les captures de connexion/validation/statut, l’approbation du produit LinkedIn requis, une organisation de test, un texte et une image réellement publiés sans duplication, les métriques 24 h et la recette préproduction. Ne jamais capturer un token, une URL d’upload ou la clé de chiffrement.
+
+## Extension BC03 — résultats de la branche de démonstration
+
+- API : 204 tests ; couverture lignes 86,55 %, branches 71,82 %.
+- Frontend : 109 tests ; couverture lignes 84,67 %, branches 76,77 %.
+- Worker : 106 tests ; couverture lignes 92,26 %, branches 81,69 %.
+- Lanceur réel : deux tests Node, sans appel réseau, ajoutés au workflow CI.
+- Lint, TypeScript, builds API/Nuxt/worker et synchronisation OpenAPI : réussis localement.
+- Parcours navigateur local : connexion agence, choix Page/personnel, callback
+  simulé et affichage du profil avec ses scopes ; contrôle console sans erreur
+  ni avertissement durant ce parcours. La confirmation d’envoi réel est
+  testée avec une réponse simulée, sans publication externe.
+
+Les pourcentages correspondent au périmètre des outils de couverture actuels,
+pas à une conformité RGAA ni à une preuve d’autorisation LinkedIn. Le scénario
+E2E existant a été adapté aux deux cibles ; sa nouvelle exécution complète en
+CI reste à vérifier. Cette branche n’est pas fusionnée dans develop/main et
+n’est pas déployée en production.

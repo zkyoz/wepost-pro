@@ -10,7 +10,11 @@ import {
   FacebookPublisher,
   MockFacebookPublisher,
 } from "./social/facebook_adapter.js";
-import { MockMediaLoader, R2MediaLoader } from "./social/media_loader.js";
+import {
+  LocalMediaLoader,
+  MockMediaLoader,
+  R2MediaLoader,
+} from "./social/media_loader.js";
 import {
   processFacebookPublication,
   socialBackoffDelay,
@@ -66,7 +70,9 @@ const mediaLoader =
   config.facebook.driver === "facebook" ||
   config.linkedin.driver === "linkedin" ||
   config.tiktok.driver === "tiktok"
-    ? new R2MediaLoader(config.r2.bucket, config.r2)
+    ? config.localMediaDirectory
+      ? new LocalMediaLoader(config.localMediaDirectory)
+      : new R2MediaLoader(config.r2.bucket, config.r2)
     : new MockMediaLoader();
 const facebookPublisher =
   config.facebook.driver === "facebook"
@@ -97,6 +103,7 @@ const linkedinPublisher =
     ? new LinkedInPublisher(config.linkedin, mediaLoader)
     : new MockLinkedInPublisher();
 const linkedinDependencies = {
+  expectedDriver: config.linkedin.driver,
   repository: new PostgresSocialPublicationRepository(pool, "linkedin"),
   publisher: linkedinPublisher,
   decryptToken: (token: string) =>

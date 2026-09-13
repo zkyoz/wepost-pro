@@ -18,6 +18,7 @@ type ScheduleRow = {
   payload_hash: string;
   account_id: string;
   account_status: string;
+  account_metadata: Record<string, unknown> | null;
   expires_at: Date | null;
   external_account_id: string;
   encrypted_access_token: string | null;
@@ -48,7 +49,7 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
               p.status AS publication_status, p.base_text, sp.idempotency_key, sp.payload_hash,
               sp.network_payload_json, sp.provider_job_id, sp.provider_status,
               sa.id AS account_id, sa.status AS account_status, sa.expires_at,
-              sa.external_account_id, sa.encrypted_access_token,
+              sa.external_account_id, sa.encrypted_access_token, sa.metadata_json AS account_metadata,
               published.remote_post_id
        FROM scheduled_publications sp
        INNER JOIN publications p ON p.id = sp.publication_id
@@ -93,6 +94,10 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
       payloadHash: row.payload_hash,
       accountId: row.account_id,
       accountStatus: row.account_status,
+      accountDriver:
+        typeof row.account_metadata?.driver === "string"
+          ? row.account_metadata.driver
+          : undefined,
       accountExpiresAt: row.expires_at,
       externalAccountId: row.external_account_id,
       encryptedAccessToken: row.encrypted_access_token,

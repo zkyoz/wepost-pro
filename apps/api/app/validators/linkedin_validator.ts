@@ -4,10 +4,12 @@ const uuid = vine.string().uuid()
 
 export const linkedinOAuthStartValidator = vine.compile(
   vine.object({
+    targetType: vine.enum(['member', 'organization']).optional(),
     organizationId: vine
       .string()
       .trim()
-      .regex(/^\d{5,30}$/),
+      .regex(/^\d{5,30}$/)
+      .optional(),
     agencyId: uuid.optional(),
   })
 )

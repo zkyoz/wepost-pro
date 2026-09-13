@@ -857,6 +857,7 @@ test.describe("session authentication", () => {
     await expect(
       page.getByRole("heading", { name: "Connexion LinkedIn" }),
     ).toBeVisible();
+    await page.getByLabel("Publier en tant que").selectOption("organization");
     await page
       .getByLabel("Identifiant de l’organisation LinkedIn")
       .fill("123456789");
@@ -865,6 +866,17 @@ test.describe("session authentication", () => {
     await expect(
       page.getByText("Le compte LinkedIn est connecté."),
     ).toBeVisible();
+    await page.getByLabel("Publier en tant que").selectOption("member");
+    await expect(
+      page.getByLabel("Identifiant de l’organisation LinkedIn"),
+    ).toBeHidden();
+    await page.getByRole("button", { name: "Continuer avec LinkedIn" }).click();
+    await expect(
+      page.getByRole("heading", { name: "Profil LinkedIn de test" }),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Compte de répétition — publication simulée"),
+    ).toHaveCount(2);
     const linkedinAccessibility = await new AxeBuilder({ page })
       .include("#main-content")
       .analyze();

@@ -23,3 +23,19 @@ Vitest vérifie le panneau, ses rôles, annonces et appels. Le scénario Playwri
 - comportement lors d’un token expiré ou d’un renouvellement indisponible.
 
 Aucune conformité RGAA complète n’est déclarée avant ces contrôles.
+
+## Extension BC03
+
+Le choix profil/Page utilise un `select` natif étiqueté. L’identifiant de Page
+n’apparaît et n’est obligatoire que pour une organisation. Le formulaire
+réutilise les styles de champs et boutons de l’application, avec une
+présentation mobile. Le statut conserve son annonce `aria-live` ; le lien
+vers une publication indique explicitement son ouverture dans un nouvel
+onglet. L’actualisation est déclenchable par un bouton, sans rechargement
+manuel complet de la page.
+
+Les tests de composant couvrent les libellés, les rôles, l’annulation de la
+confirmation d’envoi réel et l’actualisation. Le contrôle visuel BC03 porte
+sur Chromium 1440 × 1000 et 390 × 844, en mode de connexion simulée. Il ne
+remplace pas VoiceOver, le zoom 200 %, le reflow 320 px ou une recette OAuth
+réelle, qui restent à exécuter.

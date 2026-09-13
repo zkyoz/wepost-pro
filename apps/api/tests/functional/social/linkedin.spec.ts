@@ -148,6 +148,97 @@ test.group('LinkedIn publishing HTTP', () => {
     reused.assertStatus(400)
   })
 
+  test('connects a personal profile without a Page id and preserves the encrypted OAuth binding', async ({
+    client,
+    assert,
+  }) => {
+    const agency = await user('agency', 'member')
+    const start = await client
+      .post('/api/v1/social/linkedin/oauth/start')
+      .loginAs(agency)
+      .withCsrfToken()
+      .json({ targetType: 'member' })
+    start.assertStatus(200)
+    const authorization = new URL(start.body().data.authorizationUrl)
+    const callback = await client
+      .get(`${authorization.pathname}${authorization.search}`)
+      .withSession(start.session())
+      .redirects(0)
+    callback.assertStatus(302)
+    assert.notInclude(callback.header('location')!, 'state=')
+    const connected = await SocialAccount.query().where('agencyId', agencyId).firstOrFail()
+    assert.equal(connected.externalAccountId, 'urn:li:person:mock-member')
+    assert.equal(connected.metadataJson.targetType, 'member')
+    assert.equal(connected.metadataJson.driver, 'mock')
+    assert.deepEqual(connected.scopes, ['openid', 'profile', 'w_member_social'])
+    assert.notInclude(connected.encryptedAccessToken!, 'mock-linkedin-access-token')
+    const refreshed = await client
+      .post(`/api/v1/social/linkedin/accounts/${connected.id}/refresh`)
+      .loginAs(agency)
+      .withCsrfToken()
+    refreshed.assertStatus(200)
+    refreshed.assertBodyContains({
+      data: { connectionMode: 'mock', scopes: ['openid', 'profile', 'w_member_social'] },
+    })
+    const reused = await client
+      .get(`${authorization.pathname}${authorization.search}`)
+      .withSession(callback.session())
+    reused.assertStatus(400)
+  })
+
+  test('rejects ambiguous targets, missing Page ids and client account connection', async ({
+    client,
+  }) => {
+    const agency = await user('agency', 'member-validation')
+    for (const payload of [
+      {},
+      { targetType: 'organization' },
+      { targetType: 'member', organizationId: '123456789' },
+      { targetType: 'other' },
+    ]) {
+      const result = await client
+        .post('/api/v1/social/linkedin/oauth/start')
+        .loginAs(agency)
+        .withCsrfToken()
+        // @ts-expect-error Send deliberately invalid targets to exercise runtime validation.
+        .json(payload)
+      result.assertStatus(422)
+    }
+    const customer = await user('client', 'member-validation')
+    const denied = await client
+      .post('/api/v1/social/linkedin/oauth/start')
+      .loginAs(customer)
+      .withCsrfToken()
+      .json({ targetType: 'member' })
+    denied.assertStatus(403)
+  })
+
+  test('blocks a simulated account in live mode before creating a schedule', async ({
+    client,
+    assert,
+  }) => {
+    const agency = await user('agency', 'driver')
+    const customer = await user('client', 'driver')
+    const parent = await project(agency, customer)
+    const publication = await approvedPublication(agency, parent)
+    const linkedin = await account(agency)
+    const original = linkedinConfig.driver
+    try {
+      linkedinConfig.driver = 'linkedin'
+      const response = await client
+        .post(`/api/v1/social/linkedin/publications/${publication.id}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      response.assertStatus(422)
+      assert.isNull(
+        await ScheduledPublication.query().where('publicationId', publication.id).first()
+      )
+    } finally {
+      linkedinConfig.driver = original
+    }
+  })
+
   test('validates, schedules once and exposes status to the assigned client', async ({
     client,
     assert,

@@ -12,6 +12,7 @@ export type LinkedInProcessorDependencies = {
   publisher: SocialPublisher;
   decryptToken: (token: string) => string;
   now?: () => Date;
+  expectedDriver?: "mock" | "linkedin";
 };
 
 export function socialBackoffDelay(attemptsMade: number, type?: string) {
@@ -89,6 +90,14 @@ export async function processLinkedInPublication(
   const attempt = claimed.attempt;
   const maxAttempts = job.opts.attempts ?? 1;
   try {
+    if (
+      (dependencies.expectedDriver === "linkedin" &&
+        record.accountDriver !== "linkedin") ||
+      (dependencies.expectedDriver === "mock" &&
+        record.accountDriver === "linkedin")
+    ) {
+      throw { normalized: permanent("permission", "account_driver_mismatch") };
+    }
     if (
       record.currentVersion !== record.publicationVersion ||
       record.approvedVersion !== record.publicationVersion ||

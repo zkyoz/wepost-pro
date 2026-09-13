@@ -49,7 +49,13 @@ export class LinkedInPublisher implements SocialPublisher {
   }
 
   async publish(input: PublishInput): Promise<PublishResult> {
-    const author = `urn:li:organization:${input.pageId}`;
+    // The identifier is stored from the authenticated LinkedIn account, never from post content.
+    const author = /^urn:li:person:[A-Za-z0-9_-]{1,128}$/.test(input.pageId)
+      ? input.pageId
+      : /^\d{5,30}$/.test(input.pageId)
+        ? `urn:li:organization:${input.pageId}`
+        : null;
+    if (!author) throw new LinkedInApiError(422, "invalid_author");
     const media = input.media[0];
     const mediaUrn = media
       ? await this.uploadImage(author, input.accessToken, media)

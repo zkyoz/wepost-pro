@@ -1,5 +1,9 @@
 # Démonstration locale — oral BC03
 
+Pour activer une publication LinkedIn réelle, suivre le
+[guide LinkedIn](linkedin-live-demo.md). Le profil décrit ci-dessous reste
+celui de la répétition simulée ; l’activation réelle est volontairement séparée.
+
 ## Ce qui fonctionne réellement
 
 Nuxt, AdonisJS, PostgreSQL, les sessions Redis et le worker BullMQ fonctionnent

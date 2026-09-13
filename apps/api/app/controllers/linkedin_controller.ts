@@ -1,4 +1,4 @@
-import linkedinConfig from '#config/linkedin'
+import linkedinConfig, { linkedinScopes, type LinkedInTargetType } from '#config/linkedin'
 import { linkedinIdempotencyKey, linkedinPayloadHash } from '#domain/social/linkedin'
 import AuditLog from '#models/audit_log'
 import Project from '#models/project'
@@ -36,7 +36,8 @@ type OAuthState = {
   nonce: string
   actorId: string
   agencyId: string
-  organizationId: string
+  organizationId?: string
+  targetType: LinkedInTargetType
   expiresAt: number
 }
 
@@ -68,6 +69,20 @@ export default class LinkedInController {
   async oauthStart({ auth, request, response, session }: HttpContext) {
     const actor = auth.getUserOrFail()
     const payload = await request.validateUsing(linkedinOAuthStartValidator)
+    const targetType = payload.targetType ?? 'organization'
+    if (
+      (targetType === 'organization' && !payload.organizationId) ||
+      (targetType === 'member' && payload.organizationId)
+    ) {
+      return response.unprocessableEntity({
+        errors: [
+          {
+            field: 'organizationId',
+            message: 'Indiquez une organisation uniquement pour une Page entreprise.',
+          },
+        ],
+      })
+    }
     const agencyId = actor.role === 'agency' ? actor.agencyId : payload.agencyId
     if (!agencyId) {
       return response.unprocessableEntity({
@@ -85,12 +100,13 @@ export default class LinkedInController {
       actorId: actor.id,
       agencyId,
       organizationId: payload.organizationId,
+      targetType,
       expiresAt: Date.now() + 10 * 60_000,
     }
     session.put('linkedin_oauth_nonce', nonce)
     const state = encryption.encrypt(JSON.stringify(statePayload), 600, 'linkedin:oauth-state')
     return response.ok({
-      data: { authorizationUrl: getLinkedInOAuthClient().authorizationUrl(state) },
+      data: { authorizationUrl: getLinkedInOAuthClient().authorizationUrl(state, targetType) },
     })
   }
 
@@ -111,6 +127,7 @@ export default class LinkedInController {
     }
     if (
       state.actorId !== actor.id ||
+      (actor.role === 'agency' && state.agencyId !== actor.agencyId) ||
       state.expiresAt <= Date.now() ||
       !equalSecret(state.nonce, nonce)
     ) {
@@ -118,15 +135,22 @@ export default class LinkedInController {
     }
     try {
       const client = getLinkedInOAuthClient()
-      const token = await client.exchangeCode(payload.code)
-      const organizations = await client.managedOrganizations(token.accessToken)
-      const organization = organizations.find((candidate) => candidate.id === state.organizationId)
+      const targetType = state.targetType ?? 'organization'
+      const token = await client.exchangeCode(payload.code, targetType)
+      const organizations =
+        targetType === 'organization' ? await client.managedOrganizations(token.accessToken) : []
+      const organization =
+        targetType === 'member'
+          ? await client.memberProfile(token.accessToken)
+          : organizations.find((candidate) => candidate.id === state.organizationId)
       if (!organization) {
         return response.unprocessableEntity({
           errors: [{ message: 'L’organisation LinkedIn sélectionnée n’est pas administrable.' }],
         })
       }
-      const missingScopes = linkedinConfig.scopes.filter((scope) => !token.scopes.includes(scope))
+      const missingScopes = linkedinScopes(targetType).filter(
+        (scope) => !token.scopes.includes(scope)
+      )
       if (missingScopes.length) {
         return response.unprocessableEntity({
           errors: [{ message: 'Les permissions LinkedIn minimales n’ont pas été accordées.' }],
@@ -153,6 +177,8 @@ export default class LinkedInController {
           expiresAt: token.expiresIn ? DateTime.utc().plus({ seconds: token.expiresIn }) : null,
           scopes: token.scopes,
           metadataJson: {
+            targetType,
+            driver: linkedinConfig.driver,
             role: organization.role,
             refreshTokenExpiresAt: token.refreshTokenExpiresIn
               ? DateTime.utc().plus({ seconds: token.refreshTokenExpiresIn }).toISO()
@@ -173,7 +199,8 @@ export default class LinkedInController {
             previousValues: existing ? { status: existing.status } : {},
             nextValues: {
               accountId: next.id,
-              organizationId: organization.id,
+              externalAccountId: organization.id,
+              targetType,
               status: 'connected',
             },
           },
@@ -227,7 +254,8 @@ export default class LinkedInController {
     const previousStatus = account.status
     try {
       const token = await getLinkedInOAuthClient().refreshToken(
-        decryptSocialToken(account.encryptedRefreshToken, tokenKey())
+        decryptSocialToken(account.encryptedRefreshToken, tokenKey()),
+        account.externalAccountId.startsWith('urn:li:person:') ? 'member' : 'organization'
       )
       await db.transaction(async (trx) => {
         account.useTransaction(trx)

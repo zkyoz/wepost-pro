@@ -10,7 +10,8 @@ useHead({ title: "Connexion LinkedIn" });
 const { user } = useAuth();
 const api = useLinkedInApi();
 const accounts = ref<LinkedInAccount[]>((await api.accounts()).data);
-const organizationId = ref("123456789");
+const targetType = ref<"member" | "organization">("member");
+const organizationId = ref("");
 const agencyId = ref("");
 const isLoading = ref(false);
 const isHydrated = ref(false);
@@ -41,7 +42,10 @@ async function connect() {
   isLoading.value = true;
   try {
     const result = await api.startOAuth({
-      organizationId: organizationId.value,
+      targetType: targetType.value,
+      ...(targetType.value === "organization"
+        ? { organizationId: organizationId.value }
+        : {}),
       ...(user.value?.role === "admin" ? { agencyId: agencyId.value } : {}),
     });
     window.location.assign(result.data.authorizationUrl);
@@ -97,34 +101,58 @@ async function refresh(account: LinkedInAccount) {
         class="publication-detail"
         aria-labelledby="linkedin-connect-title"
       >
-        <h2 id="linkedin-connect-title">Connecter une organisation</h2>
+        <h2 id="linkedin-connect-title">Connecter un compte LinkedIn</h2>
         <p>
-          Renseignez l’identifiant exact de l’organisation LinkedIn cible. Après
-          autorisation, Wepost vérifie que votre compte possède un rôle autorisé
-          à publier pour cette organisation.
+          Autorisez WePost depuis LinkedIn. Votre mot de passe reste chez
+          LinkedIn. Pour un profil personnel, l’identité est récupérée
+          automatiquement après votre autorisation.
         </p>
-        <form @submit.prevent="connect">
-          <label for="linkedin-account-id"
-            >Identifiant de l’organisation LinkedIn</label
-          >
-          <input
-            id="linkedin-account-id"
-            v-model="organizationId"
-            inputmode="numeric"
-            pattern="[0-9]{5,30}"
-            required
-            autocomplete="off"
-          />
-          <template v-if="user?.role === 'admin'">
-            <label for="linkedin-agency-id">Identifiant de l’agence</label>
-            <input
-              id="linkedin-agency-id"
-              v-model="agencyId"
-              required
-              autocomplete="off"
-            />
+        <form
+          class="project-form linkedin-connect-form"
+          @submit.prevent="connect"
+        >
+          <div class="form-field">
+            <label for="linkedin-target-type">Publier en tant que</label>
+            <select id="linkedin-target-type" v-model="targetType">
+              <option value="member">Mon profil personnel</option>
+              <option value="organization">Une Page entreprise</option>
+            </select>
+          </div>
+          <template v-if="targetType === 'organization'">
+            <p>
+              La Page exige des accès API spécifiques. WePost vérifie votre rôle
+              sur la Page sélectionnée.
+            </p>
+            <div class="form-field">
+              <label for="linkedin-account-id"
+                >Identifiant de l’organisation LinkedIn</label
+              >
+              <input
+                id="linkedin-account-id"
+                v-model="organizationId"
+                inputmode="numeric"
+                pattern="[0-9]{5,30}"
+                required
+                autocomplete="off"
+              />
+            </div>
           </template>
-          <button type="submit" :disabled="!isHydrated || isLoading">
+          <template v-if="user?.role === 'admin'">
+            <div class="form-field">
+              <label for="linkedin-agency-id">Identifiant de l’agence</label>
+              <input
+                id="linkedin-agency-id"
+                v-model="agencyId"
+                required
+                autocomplete="off"
+              />
+            </div>
+          </template>
+          <button
+            class="button-primary"
+            type="submit"
+            :disabled="!isHydrated || isLoading"
+          >
             {{ isLoading ? "Redirection…" : "Continuer avec LinkedIn" }}
           </button>
         </form>
@@ -140,8 +168,22 @@ async function refresh(account: LinkedInAccount) {
           <li v-for="account in accounts" :key="account.id">
             <h3>{{ account.externalAccountName }}</h3>
             <p>
-              Organisation {{ account.externalAccountId }} — statut :
+              {{
+                account.externalAccountId.startsWith("urn:li:person:")
+                  ? "Profil personnel"
+                  : "Page entreprise"
+              }}
+              — statut :
               {{ account.status }}
+            </p>
+            <p>
+              {{
+                account.connectionMode === "live"
+                  ? "Connexion réelle à LinkedIn"
+                  : account.connectionMode === "mock"
+                    ? "Compte de répétition — publication simulée"
+                    : "Ancienne connexion — à renouveler avant un envoi réel"
+              }}
             </p>
             <p>Permissions : {{ account.scopes.join(", ") || "Aucune" }}</p>
             <p>
@@ -151,24 +193,47 @@ async function refresh(account: LinkedInAccount) {
               }}</time>
               <span v-else>non fournie par LinkedIn</span>
             </p>
-            <button
-              v-if="account.canRefresh && account.status !== 'revoked'"
-              type="button"
-              :disabled="isLoading"
-              @click="refresh(account)"
-            >
-              Renouveler l’accès
-            </button>
-            <button
-              v-if="account.status === 'connected'"
-              type="button"
-              @click="revoke(account)"
-            >
-              Déconnecter ce compte
-            </button>
+            <div class="page-actions">
+              <button
+                v-if="account.canRefresh && account.status !== 'revoked'"
+                type="button"
+                class="button-secondary"
+                :disabled="isLoading"
+                @click="refresh(account)"
+              >
+                Renouveler l’accès
+              </button>
+              <button
+                v-if="account.status === 'connected'"
+                type="button"
+                class="button-secondary"
+                @click="revoke(account)"
+              >
+                Déconnecter ce compte
+              </button>
+            </div>
           </li>
         </ul>
       </section>
     </main>
   </PrivateShell>
 </template>
+
+<style scoped>
+.linkedin-connect-form {
+  margin-top: 1.5rem;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+}
+.linkedin-account-list {
+  display: grid;
+  gap: 1.5rem;
+  list-style: none;
+  padding: 0;
+}
+.linkedin-account-list li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+</style>

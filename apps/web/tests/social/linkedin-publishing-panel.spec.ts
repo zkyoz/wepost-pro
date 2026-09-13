@@ -34,7 +34,7 @@ describe("LinkedInPublishingPanel", () => {
       },
     });
     expect(wrapper.get('label[for="linkedin-account"]').text()).toContain(
-      "Organisation LinkedIn",
+      "Profil ou Page LinkedIn",
     );
     expect(wrapper.text()).toContain("Valider pour LinkedIn");
     expect(wrapper.text()).toContain("Programmer sur LinkedIn");
@@ -52,5 +52,112 @@ describe("LinkedInPublishingPanel", () => {
     });
     expect(wrapper.text()).toContain("Aucune programmation LinkedIn");
     expect(wrapper.text()).not.toContain("Programmer sur LinkedIn");
+  });
+
+  it("identifies a personal test profile in the account selector", async () => {
+    linkedinApi.accounts.mockResolvedValueOnce({
+      data: [
+        {
+          id: "person",
+          externalAccountId: "urn:li:person:test",
+          externalAccountName: "Profil de test",
+          status: "connected",
+          connectionMode: "mock",
+        },
+      ],
+    });
+    const wrapper = await mountSuspended(LinkedInPublishingPanel, {
+      props: {
+        publicationId: "publication",
+        role: "agency",
+        status: "approved",
+        scheduledAt: null,
+      },
+    });
+    expect(wrapper.get("option").text()).toContain(
+      "Profil personnel (simulation)",
+    );
+  });
+
+  it("requires confirmation before programming a real public post", async () => {
+    linkedinApi.accounts.mockResolvedValueOnce({
+      data: [
+        {
+          id: "person",
+          externalAccountId: "urn:li:person:test",
+          externalAccountName: "Mon profil",
+          status: "connected",
+          connectionMode: "live",
+        },
+      ],
+    });
+    const originalConfirm = window.confirm;
+    const confirmation = vi.fn().mockReturnValue(false);
+    window.confirm = confirmation;
+    try {
+      linkedinApi.schedule.mockClear();
+      const wrapper = await mountSuspended(LinkedInPublishingPanel, {
+        props: {
+          publicationId: "publication",
+          role: "agency",
+          status: "approved",
+          scheduledAt: null,
+        },
+      });
+      await wrapper
+        .findAll("button")
+        .find((button) => button.text() === "Programmer sur LinkedIn")!
+        .trigger("click");
+      expect(confirmation).toHaveBeenCalledWith(
+        expect.stringContaining("visible publiquement"),
+      );
+      expect(linkedinApi.schedule).not.toHaveBeenCalled();
+    } finally {
+      window.confirm = originalConfirm;
+    }
+  });
+
+  it("refreshes a completed attempt and links to its real LinkedIn identifier", async () => {
+    const state = {
+      id: "schedule",
+      publicationId: "publication",
+      publicationVersion: 1,
+      runAt: "2026-09-13T12:00:00Z",
+      status: "queued",
+      attempts: [],
+    };
+    linkedinApi.status
+      .mockResolvedValueOnce({ data: state })
+      .mockResolvedValueOnce({
+        data: {
+          ...state,
+          status: "published",
+          attempts: [
+            {
+              id: "attempt",
+              attempt: 1,
+              result: "success",
+              startedAt: "2026-09-13T12:00:00Z",
+              remotePostId: "urn:li:share:12345",
+            },
+          ],
+        },
+      });
+    const wrapper = await mountSuspended(LinkedInPublishingPanel, {
+      props: {
+        publicationId: "publication",
+        role: "client",
+        status: "scheduled",
+        scheduledAt: null,
+      },
+    });
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "Actualiser le statut LinkedIn")!
+      .trigger("click");
+    await vi.waitFor(() => expect(wrapper.text()).toContain("Publiée"));
+    expect(wrapper.get('a[target="_blank"]').attributes("href")).toBe(
+      "https://www.linkedin.com/feed/update/urn:li:share:12345/",
+    );
   });
 });

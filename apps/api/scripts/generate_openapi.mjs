@@ -768,11 +768,19 @@ function buildSchemas() {
     },
     LinkedInOAuthStartInput: {
       type: 'object',
-      required: ['organizationId'],
       properties: {
+        targetType: { type: 'string', enum: ['member', 'organization'], default: 'organization' },
         organizationId: { type: 'string', pattern: '^\\d{5,30}$' },
         agencyId: uuid,
       },
+      oneOf: [
+        {
+          required: ['targetType'],
+          properties: { targetType: { const: 'member' } },
+          not: { required: ['organizationId'] },
+        },
+        { required: ['organizationId'], properties: { targetType: { const: 'organization' } } },
+      ],
       additionalProperties: false,
     },
     SocialPublicationInput: {

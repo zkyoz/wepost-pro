@@ -8,6 +8,7 @@ export type LinkedInAccount = {
   scopes: string[];
   status: "connected" | "expired" | "revoked" | "error";
   canRefresh: boolean;
+  connectionMode?: "live" | "mock" | "unknown";
   createdAt: string;
   updatedAt: string;
   revokedAt: string | null;
