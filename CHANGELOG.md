@@ -56,6 +56,13 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Ajouté
 
+- Publication réelle avec Instagram Login sans Page Facebook, import local chiffré
+  du token autorisé, séparation réel/simulé et pont HTTPS limité à un JPEG.
+- Recette réelle image réussie via les rôles agence/client de démonstration,
+  puis le worker BullMQ ; post et identifiant vérifiés auprès d’Instagram.
+- Actualisation du statut Instagram, confirmation avant publication réelle et
+  date proposée dans le fuseau local du navigateur.
+
 - Connexion LinkedIn personnelle via OpenID Connect et `w_member_social`,
   en conservant le parcours Page entreprise existant.
 - Démarrage LinkedIn réel explicite pour la démo locale, lecture des médias

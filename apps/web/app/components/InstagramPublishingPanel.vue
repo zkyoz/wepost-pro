@@ -6,6 +6,7 @@ import type {
   InstagramValidation,
 } from "~/types/instagram";
 import { getApiErrors } from "~/utils/api-errors";
+import { toLocalDateTimeInput } from "~/utils/calendar";
 
 const props = defineProps<{
   publicationId: string;
@@ -21,9 +22,10 @@ const canManage = computed(
 const accounts = ref<InstagramAccount[]>([]);
 const accountId = ref("");
 const runAt = ref(
-  props.scheduledAt
-    ? new Date(props.scheduledAt).toISOString().slice(0, 16)
-    : "",
+  toLocalDateTimeInput(
+    props.scheduledAt,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  ),
 );
 const schedule = ref<InstagramSchedule | null>(null);
 const validation = ref<InstagramValidation | null>(null);
@@ -92,6 +94,16 @@ async function validate() {
 
 async function program() {
   if (!accountId.value) return;
+  const selected = accounts.value.find(
+    (account) => account.id === accountId.value,
+  );
+  if (
+    selected?.mode === "live" &&
+    !window.confirm(
+      `Publier réellement sur Instagram avec « ${selected.externalAccountName} » à la date choisie ? Le contenu approuvé sera visible publiquement.`,
+    )
+  )
+    return;
   error.value = "";
   isLoading.value = true;
   try {
@@ -124,6 +136,21 @@ async function retry() {
   }
 }
 
+async function refreshStatus() {
+  isLoading.value = true;
+  error.value = "";
+  try {
+    schedule.value = (await api.status(props.publicationId)).data;
+    announcement.value = schedule.value
+      ? `Statut Instagram : ${scheduleLabels[schedule.value.status]}.`
+      : "Aucune programmation Instagram.";
+  } catch (cause) {
+    error.value = errorText(cause);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
 await load();
 </script>
 
@@ -147,6 +174,15 @@ await load();
       >.
     </p>
     <p v-else>Aucune programmation Instagram.</p>
+
+    <button
+      v-if="schedule"
+      type="button"
+      :disabled="!isHydrated || isLoading"
+      @click="refreshStatus"
+    >
+      Actualiser le statut Instagram
+    </button>
 
     <div v-if="canManage && !schedule" class="instagram-controls">
       <p v-if="!accounts.length">

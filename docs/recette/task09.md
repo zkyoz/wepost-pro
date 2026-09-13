@@ -26,3 +26,14 @@ Version testée : arbre local du 22/07/2026. Environnement : macOS, PostgreSQL, 
 | IG-20 | Alerte 24 h               | monitoring production             | alerte si échecs > 5 %                    | à configurer              | À faire |
 
 Captures à joindre : connexion sans token, compte/scopes, validation, statut, tentatives, compte Meta de test, run CI et recette clavier/VoiceOver.
+
+## Complément : Instagram Login réel en local
+
+IG-18 est désormais validé pour **une image JPEG réelle**, pas pour la vidéo ni
+la préproduction. Préparation, validation et programmation ont été réalisées
+dans l’interface. Le worker a publié une fois ; le post a été vérifié dans
+Instagram. Voir [la preuve et les identifiants](../evidence/task09.md).
+
+Les nouveaux tests couvrent le domaine `graph.instagram.com`, la séparation
+réel/simulé, les modes de connexion incompatibles et l’accès limité par empreinte
+au seul JPEG autorisé. Les tests automatiques continuent à simuler Meta.

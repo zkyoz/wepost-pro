@@ -12,6 +12,8 @@ export type InstagramProcessorDependencies = {
   publisher: SocialPublisher;
   decryptToken: (token: string) => string;
   now?: () => Date;
+  expectedDriver?: string;
+  expectedLoginMode?: "facebook" | "instagram";
 };
 
 export function socialBackoffDelay(attemptsMade: number, type?: string) {
@@ -89,6 +91,17 @@ export async function processInstagramPublication(
   const attempt = claimed.attempt;
   const maxAttempts = job.opts.attempts ?? 1;
   try {
+    if (
+      (dependencies.expectedDriver === "instagram" &&
+        record.accountDriver !== "instagram") ||
+      (dependencies.expectedDriver === "mock" &&
+        record.accountDriver === "instagram") ||
+      (dependencies.expectedDriver === "instagram" &&
+        dependencies.expectedLoginMode &&
+        (record.accountLoginMode ?? "facebook") !==
+          dependencies.expectedLoginMode)
+    )
+      throw { normalized: permanent("permission", "account_driver_mismatch") };
     if (
       record.currentVersion !== record.publicationVersion ||
       record.approvedVersion !== record.publicationVersion ||

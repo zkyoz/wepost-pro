@@ -98,6 +98,10 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
         typeof row.account_metadata?.driver === "string"
           ? row.account_metadata.driver
           : undefined,
+      accountLoginMode:
+        typeof row.account_metadata?.loginMode === "string"
+          ? row.account_metadata.loginMode
+          : undefined,
       accountExpiresAt: row.expires_at,
       externalAccountId: row.external_account_id,
       encryptedAccessToken: row.encrypted_access_token,

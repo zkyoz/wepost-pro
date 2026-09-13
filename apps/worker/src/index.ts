@@ -28,6 +28,7 @@ import {
 } from "./social/instagram_adapter.js";
 import { processInstagramPublication } from "./social/instagram_processor.js";
 import {
+  DemoImageUrlProvider,
   MockMediaUrlProvider,
   R2MediaUrlProvider,
 } from "./social/media_url_provider.js";
@@ -86,13 +87,21 @@ const facebookDependencies = {
 };
 const instagramMediaUrls =
   config.instagram.driver === "instagram"
-    ? new R2MediaUrlProvider(config.r2.bucket, config.r2)
+    ? config.instagram.demoImageUrl
+      ? new DemoImageUrlProvider(
+          new LocalMediaLoader(config.localMediaDirectory),
+          config.instagram.demoImageUrl,
+          config.instagram.demoImageSha256,
+        )
+      : new R2MediaUrlProvider(config.r2.bucket, config.r2)
     : new MockMediaUrlProvider();
 const instagramPublisher =
   config.instagram.driver === "instagram"
     ? new InstagramPublisher(config.instagram, instagramMediaUrls)
     : new MockInstagramPublisher();
 const instagramDependencies = {
+  expectedDriver: config.instagram.driver,
+  expectedLoginMode: config.instagram.loginMode,
   repository: new PostgresSocialPublicationRepository(pool, "instagram"),
   publisher: instagramPublisher,
   decryptToken: (token: string) =>

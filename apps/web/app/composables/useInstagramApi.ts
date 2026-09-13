@@ -12,7 +12,12 @@ export function useInstagramApi(api: typeof $fetch = useNuxtApp().$api) {
     return api<T>(url, options);
   }
   return {
-    accounts: () => api<Data<InstagramAccount[]>>("/social/instagram/accounts"),
+    accounts: () =>
+      api<
+        Data<InstagramAccount[]> & {
+          meta?: { loginMode: "facebook" | "instagram"; driver: string };
+        }
+      >("/social/instagram/accounts"),
     startOAuth: (input: { instagramAccountId: string; agencyId?: string }) =>
       mutation<Data<{ authorizationUrl: string }>>(
         "/social/instagram/oauth/start",

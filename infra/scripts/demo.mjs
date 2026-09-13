@@ -126,7 +126,7 @@ let env = {
   MEDIA_LOCAL_DIRECTORY: join(demoDirectory, "media"),
 };
 const apiDirectory = join(root, "apps/api");
-if (command === "start-linkedin" || command === "check-linkedin") {
+if (["start-linkedin", "check-linkedin", "start-social"].includes(command)) {
   let contents;
   try {
     contents = await readFile(join(demoDirectory, "linkedin.env"), "utf8");
@@ -137,6 +137,29 @@ if (command === "start-linkedin" || command === "check-linkedin") {
     );
   }
   env = linkedinLiveEnvironment(env, parseEnv(contents));
+}
+if (command === "start-social") {
+  const image = parseEnv(
+    await readFile(join(demoDirectory, "instagram-public.env"), "utf8"),
+  );
+  if (
+    Object.keys(image).some(
+      (key) =>
+        !["INSTAGRAM_DEMO_IMAGE_URL", "INSTAGRAM_DEMO_IMAGE_SHA256"].includes(
+          key,
+        ),
+    )
+  )
+    throw new Error(
+      "instagram-public.env doit contenir uniquement l’URL de l’image et son SHA256.",
+    );
+  env = {
+    ...env,
+    ...image,
+    INSTAGRAM_API_DRIVER: "instagram",
+    INSTAGRAM_LOGIN_MODE: "instagram",
+    INSTAGRAM_GRAPH_API_VERSION: "v26.0",
+  };
 }
 
 if (command === "prepare") {
@@ -151,7 +174,7 @@ if (command === "prepare") {
   });
 } else if (command === "build") {
   await run("pnpm", ["build"], { env });
-} else if (command === "start" || command === "start-linkedin") {
+} else if (["start", "start-linkedin", "start-social"].includes(command)) {
   const processes = [
     [join(root, "apps/api/build/bin/server.js"), apiDirectory, { ...env }],
     [
@@ -194,9 +217,11 @@ if (command === "prepare") {
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
   console.log(
-    command === "start-linkedin"
-      ? "WePost : http://127.0.0.1:3000 — LinkedIn réel ; autres réseaux simulés ; e-mails dans la boîte locale."
-      : "WePost : http://127.0.0.1:3000 — données de démonstration, fournisseurs simulés.",
+    command === "start-social"
+      ? "WePost : http://127.0.0.1:3000 — LinkedIn et Instagram réels ; autres réseaux simulés ; e-mails locaux."
+      : command === "start-linkedin"
+        ? "WePost : http://127.0.0.1:3000 — LinkedIn réel ; autres réseaux simulés ; e-mails dans la boîte locale."
+        : "WePost : http://127.0.0.1:3000 — données de démonstration, fournisseurs simulés.",
   );
 } else if (command === "check") {
   for (const [label, url] of [

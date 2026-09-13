@@ -20,6 +20,23 @@ La validation exige la version approuvée, un compte connecté et exactement un 
 
 Une contrainte unique protège l’idempotence interne. Le worker persiste les tentatives, normalise les erreurs, applique les retries 1/5/15 minutes aux timeouts, 429 et 5xx, et arrête les erreurs définitives. Limite résiduelle : un crash après création distante mais avant persistance de l’identifiant peut nécessiter une réconciliation manuelle, Meta ne fournissant pas ici une clé d’idempotence distante démontrée.
 
-## Tests
+## Complément — Instagram Login direct et répétition BC03
+
+`INSTAGRAM_LOGIN_MODE=instagram` utilise exclusivement `graph.instagram.com`
+et le token utilisateur Bearer ; la preuve de secret Facebook n’est envoyée que
+dans le mode Facebook Login. API et worker refusent les comptes d’un mode
+incompatible, avant tout appel de publication.
+
+La commande d’import est limitée à une base locale `wepost_demo`, exige un fichier
+de token privé (0600), vérifie le nom du compte via Meta et utilise AES-256-GCM.
+Elle n’affiche pas le token et ajoute une entrée d’audit sans secret.
+
+Le pont média de test écoute sur loopback et ne sert qu’un chemin opaque vers un
+JPEG, sans liste de fichiers ni API. Il expire après 30 minutes. Le worker compare
+l’empreinte des octets du média avec celle du JPEG autorisé avant d’en fournir
+l’URL HTTPS. Le tunnel est arrêté après le test. R2 reste le fournisseur prévu
+pour le stockage durable. Les tokens ne sont jamais placés dans l’URL publique.
+
+## Validation automatisée
 
 Les tests couvrent state/rejeu, chiffrement, rôle client, validation, formats, version et empreinte, token expiré, conteneur image/vidéo, attente, timeout, 429, 5xx, erreurs définitives, idempotence, retry et révocation. Tous les appels Meta sont simulés.

@@ -1,6 +1,7 @@
 import { mockNuxtImport, mountSuspended } from "@nuxt/test-utils/runtime";
 import { describe, expect, it, vi } from "vitest";
 import InstagramPublishingPanel from "~/components/InstagramPublishingPanel.vue";
+import { flushPromises } from "@vue/test-utils";
 
 const { instagramApi } = vi.hoisted(() => ({
   instagramApi: {
@@ -24,6 +25,76 @@ const { instagramApi } = vi.hoisted(() => ({
 mockNuxtImport("useInstagramApi", () => () => instagramApi);
 
 describe("InstagramPublishingPanel", () => {
+  it("does not publish a real account when confirmation is declined", async () => {
+    instagramApi.accounts.mockResolvedValueOnce({
+      data: [
+        {
+          id: "real-account",
+          externalAccountId: "17841400000000000",
+          externalAccountName: "@test",
+          status: "connected",
+          mode: "live",
+        },
+      ],
+    });
+    const originalConfirm = window.confirm;
+    const confirm = vi.fn().mockReturnValue(false);
+    window.confirm = confirm;
+    try {
+      const wrapper = await mountSuspended(InstagramPublishingPanel, {
+        props: {
+          publicationId: "publication",
+          role: "agency",
+          status: "approved",
+          scheduledAt: null,
+        },
+      });
+      await wrapper
+        .findAll("button")
+        .find((button) => button.text() === "Programmer sur Instagram")!
+        .trigger("click");
+      await flushPromises();
+      expect(confirm).toHaveBeenCalledWith(expect.stringContaining("@test"));
+      expect(instagramApi.schedule).not.toHaveBeenCalled();
+    } finally {
+      window.confirm = originalConfirm;
+    }
+  });
+  it("refreshes a queued publication without sending another job", async () => {
+    instagramApi.status.mockResolvedValueOnce({
+      data: {
+        id: "schedule",
+        status: "queued",
+        publicationVersion: 1,
+        runAt: "2026-09-13T12:00:00Z",
+        attempts: [],
+      },
+    });
+    const wrapper = await mountSuspended(InstagramPublishingPanel, {
+      props: {
+        publicationId: "publication",
+        role: "client",
+        status: "scheduled",
+        scheduledAt: null,
+      },
+    });
+    instagramApi.status.mockResolvedValueOnce({
+      data: {
+        id: "schedule",
+        status: "published",
+        publicationVersion: 1,
+        runAt: "2026-09-13T12:00:00Z",
+        attempts: [],
+      },
+    });
+    await wrapper
+      .findAll("button")
+      .find((button) => button.text() === "Actualiser le statut Instagram")!
+      .trigger("click");
+    await flushPromises();
+    expect(wrapper.text()).toContain("Statut Instagram : Publiée.");
+    expect(instagramApi.schedule).not.toHaveBeenCalled();
+  });
   it("offers accessible validation and scheduling controls to the agency", async () => {
     const wrapper = await mountSuspended(InstagramPublishingPanel, {
       props: {

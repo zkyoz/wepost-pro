@@ -33,4 +33,32 @@ Aucune nouvelle migration : `1784763000000_create_social_publishing_tables.ts`, 
 
 ## Preuves externes restantes
 
-Ajouter le SHA, les runs CI rouge/vert, les captures de connexion/validation/statut, l’App Review, un compte professionnel de test, une image et une vidéo réellement publiées sans duplication, les métriques 24 h et la recette préproduction. Ne jamais capturer un token, une URL R2 signée ou la clé de chiffrement.
+### Complément BC03 — Instagram Login réel
+
+La répétition locale a parcouru le brouillon, l’association d’un JPEG, la soumission,
+l’approbation via le rôle Client Démo et la programmation via le rôle Agence Démo.
+Ces rôles ont été opérés pour le test : ce n’est pas un retour client externe.
+
+- Publication : `3bbfd7e6-1373-4201-914a-860afd5108ef`, version 1.
+- Programmation : `4b8489aa-b8a2-4d3e-96fa-619485be4de6`.
+- PostgreSQL : `published`, une tentative `success`, aucun code d’erreur.
+- Identifiant Instagram : `17911001742285939`.
+- [Post vérifié dans Instagram](https://www.instagram.com/p/DdPgH0hjnRW/) : image
+  et légende « Publication test depuis WePost. ». Le propriétaire peut supprimer ce test.
+- L’API officielle confirme `media_type=IMAGE`, l’identifiant et le permalink.
+- Worker : 110 tests réussis ; API Instagram : 5 tests HTTP réussis ; builds des
+  trois applications, lint et TypeScript réussis avant le test réel.
+
+Le token Instagram Login a été autorisé dans Meta et importé par une commande
+réservée à `wepost_demo`. Il est stocké chiffré. Les endpoints `me` et
+`content_publishing_limit` ont été vérifiés ; l’inventaire des scopes et l’expiration
+n’ont pas été fournis. Ce test ne valide pas le bouton OAuth Facebook Login.
+
+Le visuel du test LinkedIn a été converti en JPEG 1080 × 1350 avec marges pour
+conserver tout le contenu. Seul ce JPEG a été exposé ; serveur et tunnel ont été
+fermés après publication. Ce lien temporaire n’est pas un stockage de production.
+La vidéo réelle, l’App Review pour des utilisateurs externes et la recette de
+préproduction restent des validations distinctes.
+
+Compléter les preuves de CI, vidéo réelle, métriques 24 h et préproduction pour
+les périmètres non couverts ci-dessus. Ne jamais capturer de token ni de clé.

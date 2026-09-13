@@ -9,7 +9,9 @@ definePageMeta({
 useHead({ title: "Connexion Instagram" });
 const { user } = useAuth();
 const api = useInstagramApi();
-const accounts = ref<InstagramAccount[]>((await api.accounts()).data);
+const accountResponse = await api.accounts();
+const accounts = ref<InstagramAccount[]>(accountResponse.data);
+const directLogin = accountResponse.meta?.loginMode === "instagram";
 const instagramAccountId = ref("17841400000000000");
 const agencyId = ref("");
 const isLoading = ref(false);
@@ -84,12 +86,17 @@ async function revoke(account: InstagramAccount) {
         aria-labelledby="instagram-connect-title"
       >
         <h2 id="instagram-connect-title">Connecter un compte professionnel</h2>
-        <p>
+        <p v-if="directLogin">
+          Connexion directe Instagram, sans Page Facebook. Le compte de test a
+          été autorisé dans Meta puis son token a été enregistré de manière
+          chiffrée dans la configuration locale de WePost.
+        </p>
+        <p v-else>
           Renseignez l’identifiant exact du compte Instagram Business ou Creator
           lié à une Page Facebook. Un profil personnel n’est pas pris en charge
           par l’API de publication retenue.
         </p>
-        <form @submit.prevent="connect">
+        <form v-if="!directLogin" @submit.prevent="connect">
           <label for="instagram-account-id"
             >Identifiant du compte Instagram</label
           >
@@ -126,10 +133,23 @@ async function revoke(account: InstagramAccount) {
           <li v-for="account in accounts" :key="account.id">
             <h3>{{ account.externalAccountName }}</h3>
             <p>
+              {{
+                account.mode === "live"
+                  ? "Publication réelle via l’API officielle"
+                  : "Compte de démonstration simulé"
+              }}
+            </p>
+            <p>
               Compte {{ account.externalAccountId }} — statut :
               {{ account.status }}
             </p>
-            <p>Permissions : {{ account.scopes.join(", ") || "Aucune" }}</p>
+            <p>
+              Permissions :
+              {{
+                account.scopes.join(", ") ||
+                "inventaire non fourni par Instagram"
+              }}
+            </p>
             <p>
               Expiration :
               <time v-if="account.expiresAt" :datetime="account.expiresAt">{{

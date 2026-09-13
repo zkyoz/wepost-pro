@@ -14,6 +14,13 @@
 
 Vitest vérifie les états, rôles, annonces et appels du panneau. Playwright couvre connexion mock, validation et programmation sur Chromium desktop/mobile. Un scan axe de l’écran Instagram connecté ne relève aucune violation sérieuse ou critique.
 
+## Complément Instagram Login
+
+Le panneau Instagram dispose également d’un bouton natif « Actualiser le statut
+Instagram », avec annonce du résultat sans rechargement global. Les connexions
+réelles et simulées sont identifiées textuellement. L’inventaire de permissions
+non fourni ne doit pas être affiché comme une absence d’autorisation.
+
 ## Contrôles manuels restant en préproduction
 
 - Tab/Maj+Tab/Entrée/Espace sur connexion, validation, date, programmation et relance ;

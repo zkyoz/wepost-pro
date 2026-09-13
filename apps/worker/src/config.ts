@@ -30,6 +30,11 @@ export function loadConfig() {
   }
   const facebookDriver = required("FACEBOOK_API_DRIVER");
   const instagramDriver = required("INSTAGRAM_API_DRIVER");
+  if (!["mock", "instagram"].includes(instagramDriver))
+    throw new Error("INSTAGRAM_API_DRIVER invalide");
+  const instagramLoginMode = process.env.INSTAGRAM_LOGIN_MODE || "facebook";
+  if (!["facebook", "instagram"].includes(instagramLoginMode))
+    throw new Error("INSTAGRAM_LOGIN_MODE invalide");
   const linkedinDriver = required("LINKEDIN_API_DRIVER");
   if (linkedinDriver !== "mock" && linkedinDriver !== "linkedin") {
     throw new Error("LINKEDIN_API_DRIVER invalide");
@@ -50,6 +55,11 @@ export function loadConfig() {
     );
   }
   const pinterestDriver = required("PINTEREST_API_DRIVER");
+  const demoImageUrl = process.env.INSTAGRAM_DEMO_IMAGE_URL || "";
+  if (demoImageUrl && (!localMediaDirectory || instagramDriver !== "instagram"))
+    throw new Error(
+      "Le pont image Instagram est réservé au développement local réel.",
+    );
   const tiktokDriver = required("TIKTOK_API_DRIVER");
   const queueName = required("EMAIL_QUEUE_NAME");
   const queuePrefix = `${required("REDIS_KEY_PREFIX")}:queue`;
@@ -101,8 +111,16 @@ export function loadConfig() {
     },
     instagram: {
       driver: instagramDriver,
+      loginMode: instagramLoginMode as "facebook" | "instagram",
+      demoImageUrl,
+      demoImageSha256: demoImageUrl
+        ? required("INSTAGRAM_DEMO_IMAGE_SHA256")
+        : "",
       graphApiVersion: required("INSTAGRAM_GRAPH_API_VERSION"),
-      appSecret: required("INSTAGRAM_APP_SECRET"),
+      appSecret:
+        instagramLoginMode === "facebook"
+          ? required("INSTAGRAM_APP_SECRET")
+          : "",
     },
     linkedin: {
       driver: linkedinDriver as "mock" | "linkedin",

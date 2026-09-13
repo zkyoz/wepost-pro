@@ -58,6 +58,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   FACEBOOK_OAUTH_REDIRECT_URI: Env.schema.string.optional(),
   FACEBOOK_OAUTH_SUCCESS_URL: Env.schema.string.optional(),
   INSTAGRAM_API_DRIVER: Env.schema.enum.optional(['mock', 'instagram'] as const),
+  INSTAGRAM_LOGIN_MODE: Env.schema.enum.optional(['facebook', 'instagram'] as const),
   INSTAGRAM_APP_ID: Env.schema.string.optional(),
   INSTAGRAM_APP_SECRET: Env.schema.string.optional(),
   INSTAGRAM_GRAPH_API_VERSION: Env.schema.string.optional(),
