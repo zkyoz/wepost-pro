@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseEnv } from "node:util";
 import { linkedinLiveEnvironment } from "./demo-linkedin-env.mjs";
+import { readR2Environment, withoutR2Secrets } from "./demo-r2-env.mjs";
 
 const root = fileURLToPath(new URL("../../", import.meta.url));
 const demoDirectory = join(root, ".demo");
@@ -126,7 +127,14 @@ let env = {
   MEDIA_LOCAL_DIRECTORY: join(demoDirectory, "media"),
 };
 const apiDirectory = join(root, "apps/api");
-if (["start-linkedin", "check-linkedin", "start-social"].includes(command)) {
+if (
+  [
+    "start-linkedin",
+    "check-linkedin",
+    "start-social",
+    "start-social-r2",
+  ].includes(command)
+) {
   let contents;
   try {
     contents = await readFile(join(demoDirectory, "linkedin.env"), "utf8");
@@ -161,6 +169,14 @@ if (command === "start-social") {
     INSTAGRAM_GRAPH_API_VERSION: "v26.0",
   };
 }
+if (command === "start-social-r2") {
+  env = await readR2Environment(env, join(demoDirectory, "r2.env"));
+  Object.assign(env, {
+    INSTAGRAM_API_DRIVER: "instagram",
+    INSTAGRAM_LOGIN_MODE: "instagram",
+    INSTAGRAM_GRAPH_API_VERSION: "v26.0",
+  });
+}
 
 if (command === "prepare") {
   await run("docker", ["compose", "-f", composeFile, "up", "-d", "--wait"]);
@@ -174,7 +190,11 @@ if (command === "prepare") {
   });
 } else if (command === "build") {
   await run("pnpm", ["build"], { env });
-} else if (["start", "start-linkedin", "start-social"].includes(command)) {
+} else if (
+  ["start", "start-linkedin", "start-social", "start-social-r2"].includes(
+    command,
+  )
+) {
   const processes = [
     [join(root, "apps/api/build/bin/server.js"), apiDirectory, { ...env }],
     [
@@ -185,7 +205,12 @@ if (command === "prepare") {
     [
       join(root, "apps/web/.output/server/index.mjs"),
       join(root, "apps/web"),
-      { ...env, PORT: "3000", NITRO_PORT: "3000", NITRO_HOST: "127.0.0.1" },
+      {
+        ...withoutR2Secrets(env),
+        PORT: "3000",
+        NITRO_PORT: "3000",
+        NITRO_HOST: "127.0.0.1",
+      },
     ],
   ];
   const children = [];
@@ -217,7 +242,7 @@ if (command === "prepare") {
   process.once("SIGINT", stop);
   process.once("SIGTERM", stop);
   console.log(
-    command === "start-social"
+    ["start-social", "start-social-r2"].includes(command)
       ? "WePost : http://127.0.0.1:3000 — LinkedIn et Instagram réels ; autres réseaux simulés ; e-mails locaux."
       : command === "start-linkedin"
         ? "WePost : http://127.0.0.1:3000 — LinkedIn réel ; autres réseaux simulés ; e-mails dans la boîte locale."

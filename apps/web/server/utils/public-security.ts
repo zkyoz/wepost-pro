@@ -10,6 +10,21 @@ function httpOrigin(value?: string) {
   }
 }
 
+function r2Origin(value?: string) {
+  try {
+    const url = new URL(value || "");
+    return url.protocol === "https:" &&
+      !url.username &&
+      !url.password &&
+      !url.port &&
+      /^[a-z0-9.-]+\.r2\.cloudflarestorage\.com$/.test(url.hostname)
+      ? url.origin
+      : "";
+  } catch {
+    return "";
+  }
+}
+
 export function inlineScriptHashes(html: string) {
   const hashes = new Set<string>();
   const pending: DefaultTreeAdapterTypes.Node[] = [parse(html)];
@@ -38,17 +53,19 @@ export function buildPublicSecurityHeaders(
   posthogHost?: string,
   options: {
     apiBase?: string;
+    mediaOrigin?: string;
     scriptHashes?: string[];
     upgradeInsecureRequests?: boolean;
   } = {},
 ) {
   const posthogOrigin = httpOrigin(posthogHost);
   const apiOrigin = httpOrigin(options.apiBase);
+  const storageOrigin = r2Origin(options.mediaOrigin);
 
-  const connectSources = ["'self'", posthogOrigin, apiOrigin]
+  const connectSources = ["'self'", posthogOrigin, apiOrigin, storageOrigin]
     .filter(Boolean)
     .join(" ");
-  const mediaSources = ["'self'", "data:", "blob:", apiOrigin]
+  const mediaSources = ["'self'", "data:", "blob:", apiOrigin, storageOrigin]
     .filter(Boolean)
     .join(" ");
   const hashes = (options.scriptHashes || []).filter((hash) =>

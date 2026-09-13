@@ -6,6 +6,32 @@ import {
 import { createHash } from "node:crypto";
 
 describe("public security headers", () => {
+  it("allows the configured private R2 origin for uploads and previews only", () => {
+    const origin =
+      "https://wepost-demo-media.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.r2.cloudflarestorage.com";
+    const policy = buildPublicSecurityHeaders("", { mediaOrigin: origin })[
+      "Content-Security-Policy"
+    ];
+    for (const name of ["connect-src", "img-src", "media-src"])
+      expect(
+        policy.split("; ").find((part) => part.startsWith(name)),
+      ).toContain(origin);
+    expect(
+      policy.split("; ").find((part) => part.startsWith("script-src")),
+    ).not.toContain(origin);
+    expect(policy).not.toContain("*.r2.cloudflarestorage.com");
+    for (const mediaOrigin of [
+      "https://evil.example",
+      "http://a.r2.cloudflarestorage.com",
+      "https://a.r2.cloudflarestorage.com.evil.test",
+      "https://user:pass@a.r2.cloudflarestorage.com",
+    ])
+      expect(
+        buildPublicSecurityHeaders("", { mediaOrigin })[
+          "Content-Security-Policy"
+        ],
+      ).not.toContain(mediaOrigin);
+  });
   it("uses HTML parsing for unusual closing tags and quoted attributes", () => {
     const script = "window.ready=true;";
     const hash = `'sha256-${createHash("sha256").update(script).digest("base64")}'`;

@@ -6,6 +6,7 @@ export default defineEventHandler((event) => {
     String(config.public.posthogHost || ""),
     {
       apiBase: String(config.public.apiBase || ""),
+      mediaOrigin: String(config.public.mediaOrigin || ""),
       upgradeInsecureRequests: String(config.public.siteUrl || "").startsWith(
         "https://",
       ),

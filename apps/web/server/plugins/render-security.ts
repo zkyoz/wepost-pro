@@ -11,6 +11,7 @@ export default defineNitroPlugin((nitroApp) => {
       String(config.public.posthogHost || ""),
       {
         apiBase: String(config.public.apiBase || ""),
+        mediaOrigin: String(config.public.mediaOrigin || ""),
         scriptHashes: inlineScriptHashes(response.body),
         upgradeInsecureRequests: String(config.public.siteUrl || "").startsWith(
           "https://",

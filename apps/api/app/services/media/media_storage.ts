@@ -84,12 +84,12 @@ class LocalMediaStorage implements MediaStorage {
   }
 }
 
-class R2MediaStorage implements MediaStorage {
+export class R2MediaStorage implements MediaStorage {
   private client: S3Client
   private bucket: string
 
-  constructor() {
-    const { accountId, bucket, accessKeyId, secretAccessKey } = mediaConfig.r2
+  constructor(config = mediaConfig.r2) {
+    const { accountId, bucket, accessKeyId, secretAccessKey } = config
     if (!accountId || !bucket || !accessKeyId || !secretAccessKey) {
       throw new Error('Configuration Cloudflare R2 incomplète.')
     }
@@ -98,6 +98,9 @@ class R2MediaStorage implements MediaStorage {
       region: 'auto',
       endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       credentials: { accessKeyId, secretAccessKey },
+      // The browser supplies the body later. Do not sign an empty-body CRC32.
+      // Finalization verifies the uploaded SHA-256, size and actual MIME type.
+      requestChecksumCalculation: 'WHEN_REQUIRED',
     })
   }
 

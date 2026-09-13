@@ -16,6 +16,7 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     public: {
+      mediaOrigin: process.env.NUXT_PUBLIC_MEDIA_ORIGIN || "",
       apiBase:
         process.env.NUXT_PUBLIC_API_BASE || "http://localhost:3333/api/v1",
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || "http://localhost:3000",
