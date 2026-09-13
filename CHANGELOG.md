@@ -6,6 +6,8 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
+- Synchronisé les tests E2E LinkedIn sur la nouvelle redirection OAuth avant
+  l'analyse d'accessibilité et isolé les noms et médias entre tentatives.
 - Mis à jour Ace 14.1.0 vers 14.1.1 pour corriger la validation des commandes
   avec Node 24.20 et ultérieur, sans figer un ancien correctif Node.
 - Remplacé l'extraction HTML par expression régulière par le parseur parse5

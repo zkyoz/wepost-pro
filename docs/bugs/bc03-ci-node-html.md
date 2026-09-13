@@ -42,5 +42,27 @@ Sources : [parse5](https://parse5.js.org/functions/parse5.parse.html) et
 - Lint web, vérification TypeScript web et build Nuxt réussis.
 - Aucun secret ou token Instagram inclus dans le changement.
 
-La CI distante doit être relancée sur le commit de correction avant de
-déclarer la PR prête à fusionner.
+## Synchronisation du parcours OAuth mobile
+
+Le run [34779995683](https://github.com/zkyoz/wepost-pro/actions/runs/34779995683)
+valide la qualité, les tests API/web/worker, les builds et les analyses de
+sécurité. Le parcours mobile échoue pendant axe avec `Execution context was
+destroyed`, puis les nouvelles tentatives rencontrent des publications portant
+le même nom.
+
+Les comptes LinkedIn simulés sont partagés entre les parcours desktop et
+mobile. Leur présence ne prouve donc pas la fin d'une nouvelle connexion OAuth.
+Le test attend désormais une nouvelle navigation du document principal vers
+la page de succès puis l'hydratation Nuxt avant de poursuivre. Les inscriptions,
+projets, publications et contenus médias utilisent un identifiant propre à
+chaque tentative, afin de ne pas sélectionner les données d'un essai précédent.
+
+Les assertions métier et axe, le délai maximal, les projets desktop/mobile
+et les seuils de couverture restent inchangés. Aucun code applicatif ni aucune
+donnée de démonstration n'est modifié.
+
+Validation locale : le parcours collaboratif complet mobile réussit deux fois
+consécutivement (`--repeat-each=2 --retries=0`) sur `wepost_test`, y compris la
+reconnexion des comptes déjà présents et les analyses axe. Le lint et le
+typecheck web réussissent également. La CI distante doit être relancée sur
+le commit de correction avant de déclarer la validation terminée.

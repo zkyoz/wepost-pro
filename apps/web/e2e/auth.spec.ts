@@ -1,8 +1,27 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
+import { randomUUID } from "node:crypto";
 
 async function waitForNuxt(page: Page) {
   await expect(page.locator("html")).toHaveAttribute("data-nuxt-ready", "true");
+}
+
+async function connectLinkedIn(page: Page) {
+  // Existing accounts and the success URL can already be visible on a repeat
+  // connection. Wait for a new main-frame navigation, not that stale state.
+  const connectedNavigation = page.waitForEvent("framenavigated", {
+    predicate: (frame) => {
+      if (frame !== page.mainFrame()) return false;
+      const url = new URL(frame.url());
+      return (
+        url.pathname === "/settings/linkedin" &&
+        url.searchParams.get("linkedin") === "connected"
+      );
+    },
+  });
+  await page.getByRole("button", { name: "Continuer avec LinkedIn" }).click();
+  await connectedNavigation;
+  await waitForNuxt(page);
 }
 
 async function loginAs(page: Page, email: string) {
@@ -24,7 +43,7 @@ test.describe("session authentication", () => {
   test("keeps the session visible and offers a retry when dashboard data fails", async ({
     page,
   }, testInfo) => {
-    const email = `support-${testInfo.project.name}@example.com`;
+    const email = `support-${testInfo.project.name}-${randomUUID().slice(0, 8)}@example.com`;
     const failingRoutes = ["**/api/v1/projects**", "**/api/v1/calendar**"];
 
     for (const routePattern of failingRoutes) {
@@ -68,7 +87,7 @@ test.describe("session authentication", () => {
   test("registers, restores the session, logs out and protects private pages", async ({
     page,
   }, testInfo) => {
-    const email = `e2e-${testInfo.project.name}@example.com`;
+    const email = `e2e-${testInfo.project.name}-${randomUUID().slice(0, 8)}@example.com`;
     await page.goto("/auth/register");
     await waitForNuxt(page);
     await page.getByLabel("Nom affiché").fill("Compte E2E");
@@ -284,8 +303,9 @@ test.describe("session authentication", () => {
     page,
   }, testInfo) => {
     test.setTimeout(120_000);
-    const projectName = `Projet E2E ${testInfo.project.name}`;
-    const publicationTitle = `Publication E2E ${testInfo.project.name}`;
+    const attemptId = `${testInfo.project.name} ${randomUUID().slice(0, 8)}`;
+    const projectName = `Projet E2E ${attemptId}`;
+    const publicationTitle = `Publication E2E ${attemptId}`;
     const updatedPublicationTitle = `${publicationTitle} modifiée`;
     await loginAs(page, "agency.e2e@example.test");
     await page.getByRole("link", { name: "Projets", exact: true }).click();
@@ -587,7 +607,7 @@ test.describe("session authentication", () => {
         "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////2wBDAf//////////////////////////////////////////////////////////////////////////////////////wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAX/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIQAxAAAAF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABBQJ//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPwF//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPwF//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQAGPwJ//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPyF//9oADAMBAAIAAwAAABAf/8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAwEBPxB//8QAFBEBAAAAAAAAAAAAAAAAAAAAAP/aAAgBAgEBPxB//8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxB//9k=",
         "base64",
       ),
-      Buffer.from(testInfo.project.name),
+      Buffer.from(attemptId),
     ]);
     await page.getByLabel("Fichier image ou vidéo").setInputFiles({
       name: "campagne-e2e.jpg",
@@ -861,7 +881,7 @@ test.describe("session authentication", () => {
     await page
       .getByLabel("Identifiant de l’organisation LinkedIn")
       .fill("123456789");
-    await page.getByRole("button", { name: "Continuer avec LinkedIn" }).click();
+    await connectLinkedIn(page);
     await expect(page).toHaveURL(/\/settings\/linkedin\?linkedin=connected/);
     await expect(
       page.getByText("Le compte LinkedIn est connecté."),
@@ -870,7 +890,7 @@ test.describe("session authentication", () => {
     await expect(
       page.getByLabel("Identifiant de l’organisation LinkedIn"),
     ).toBeHidden();
-    await page.getByRole("button", { name: "Continuer avec LinkedIn" }).click();
+    await connectLinkedIn(page);
     await expect(
       page.getByRole("heading", { name: "Profil LinkedIn de test" }),
     ).toBeVisible();
@@ -952,7 +972,7 @@ test.describe("session authentication", () => {
       .click();
     const mp4 = Buffer.concat([
       Buffer.from("00000018667479706d703432000000006d70343269736f6d", "hex"),
-      Buffer.from(testInfo.project.name),
+      Buffer.from(attemptId),
     ]);
     await page.getByLabel("Fichier image ou vidéo").setInputFiles({
       name: "campagne-e2e.mp4",
