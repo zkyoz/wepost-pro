@@ -39,4 +39,11 @@ pour le stockage durable. Les tokens ne sont jamais placés dans l’URL publiqu
 
 ## Validation automatisée
 
+Le profil `start-social-r2` remplace le pont de test par R2 privé et efface ses
+deux paramètres d'URL/empreinte. Le worker signe uniquement la clé du média
+validé pour 1 200 secondes au moment du traitement. La lecture est possible à
+toute personne détenant ce lien pendant sa validité ; ne pas l'enregistrer dans
+les preuves publiques. La [recette réelle](../evidence/r2-demo/verification.md)
+a confirmé une publication, sans duplication de tentative.
+
 Les tests couvrent state/rejeu, chiffrement, rôle client, validation, formats, version et empreinte, token expiré, conteneur image/vidéo, attente, timeout, 429, 5xx, erreurs définitives, idempotence, retry et révocation. Tous les appels Meta sont simulés.

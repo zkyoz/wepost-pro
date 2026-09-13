@@ -3,6 +3,8 @@
 Pour activer une publication LinkedIn réelle, suivre le
 [guide LinkedIn](linkedin-live-demo.md). Le profil décrit ci-dessous reste
 celui de la répétition simulée ; l’activation réelle est volontairement séparée.
+Pour LinkedIn personnel, Instagram réel et les médias R2 privés, utiliser le
+[profil social R2](r2-live-demo.md), sans tunnel vers le Mac.
 
 ## Ce qui fonctionne réellement
 

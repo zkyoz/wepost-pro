@@ -14,6 +14,11 @@
 
 ## Contrôles automatisés
 
+La recette R2 BC03 a utilisé la sélection native du JPEG et une alternative
+textuelle, puis vérifié l'image et son alternative depuis le compte client.
+Le changement de stockage ne modifie pas ces contrôles. Il ne constitue pas
+un audit VoiceOver ou une déclaration de conformité RGAA.
+
 Le parcours Playwright de la fiche publication vérifie l’upload, l’alternative visible pour l’agence puis le client et l’absence de commande de suppression côté client. Le scan axe existant couvre la fiche complète après ajout du média.
 
 ## Contrôles manuels à consigner en préproduction

@@ -119,6 +119,10 @@ Mettre à jour ou créer :
 
 ## Compte rendu attendu de Codex
 
+Complément BC03 : stockage R2 réel, CORS et migration conservatrice validés dans
+la [recette médias](docs/evidence/r2-demo/verification.md). Le profil conserve la
+base existante et n'introduit aucune migration SQL.
+
 Terminer la réponse par :
 
 1. résumé de l’implémentation ;

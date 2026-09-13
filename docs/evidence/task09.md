@@ -33,6 +33,10 @@ Aucune nouvelle migration : `1784763000000_create_social_publishing_tables.ts`, 
 
 ## Preuves externes restantes
 
+Un second test image utilise désormais le bucket R2 privé, sans tunnel : voir
+le [parcours complet et ses preuves](r2-demo/verification.md). L'historique du
+premier test avec le pont temporaire est conservé ci-dessous.
+
 ### Complément BC03 — Instagram Login réel
 
 La répétition locale a parcouru le brouillon, l’association d’un JPEG, la soumission,

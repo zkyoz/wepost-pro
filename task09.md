@@ -84,6 +84,10 @@ Créer l’adaptateur officiel Instagram, la connexion OAuth et le cycle fiable 
 
 ## Hors périmètre
 
+Complément BC03 : le [test image R2 réel](docs/evidence/r2-demo/verification.md)
+valide le parcours agence/client/worker sans tunnel. Les autres limites ci-dessous
+restent indépendantes de ce test.
+
 - Stories ou formats non supportés par l’API au moment du développement, sauf décision explicite.
 
 ## Livrables et définition de terminé

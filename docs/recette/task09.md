@@ -37,3 +37,7 @@ Instagram. Voir [la preuve et les identifiants](../evidence/task09.md).
 Les nouveaux tests couvrent le domaine `graph.instagram.com`, la séparation
 réel/simulé, les modes de connexion incompatibles et l’accès limité par empreinte
 au seul JPEG autorisé. Les tests automatiques continuent à simuler Meta.
+
+La même recette image a ensuite été répétée avec un nouveau JPEG téléversé vers
+R2 privé, sans pont HTTPS : une tentative réussie, identifiant et image vérifiés
+sur Instagram. Voir le [complément R2](../evidence/r2-demo/verification.md).

@@ -8,6 +8,13 @@ Les principes suivent la documentation Cloudflare sur les [URLs présignées R2]
 
 ## Validation après upload
 
+Complément BC03 : les clés S3 sont lues depuis `.demo/r2.env` (0600, ignoré par
+Git), limitées au bucket de démonstration et exclues de l'environnement Nuxt.
+La CSP autorise seulement l'origine R2 configurée pour les connexions et médias,
+sans l'ajouter aux scripts. Le SDK ne signe pas un checksum vide avant le PUT
+navigateur ; les vérifications serveur ci-dessous restent actives. Une signature
+expirée a effectivement retourné HTTP 403 dans la [recette R2](../evidence/r2-demo/verification.md).
+
 - limite serveur configurable, contrôlée avant et pendant le transfert local ;
 - lecture serveur de l’objet après upload ;
 - type réel détecté par signature binaire, jamais par extension seule ;

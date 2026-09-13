@@ -16,6 +16,10 @@ Vitest vérifie les états, rôles, annonces et appels du panneau. Playwright co
 
 ## Complément Instagram Login
 
+Le parcours avec R2 conserve les états textuels de validation et de publication.
+La capture de recette montre « Publiée » et une tentative « Réussie », ainsi que
+la décision client. Aucune signification n'est portée uniquement par la couleur.
+
 Le panneau Instagram dispose également d’un bouton natif « Actualiser le statut
 Instagram », avec annonce du résultat sans rechargement global. Les connexions
 réelles et simulées sont identifiées textuellement. L’inventaire de permissions

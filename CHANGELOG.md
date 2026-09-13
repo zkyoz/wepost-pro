@@ -6,6 +6,11 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
+- Corrigé la signature des uploads R2 pour ne pas signer le checksum d'un corps
+  vide avant l'envoi du fichier par le navigateur ; validation SHA-256 conservée.
+- Autorisé l'origine R2 configurée dans les directives CSP de connexion, image
+  et média, sans wildcard ni élargissement de la politique des scripts.
+
 - Synchronisé les tests E2E LinkedIn sur la nouvelle redirection OAuth avant
   l'analyse d'accessibilité et isolé les noms et médias entre tentatives.
 - Mis à jour Ace 14.1.0 vers 14.1.1 pour corriger la validation des commandes
@@ -55,6 +60,10 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
   technique, la répartition des responsabilités et les preuves de résolution.
 
 ### Ajouté
+
+- Profil local `demo:social:r2:start`, secrets S3 privés, CORS ciblé et migration
+  des anciens médias avec contrôle d'intégrité, sans suppression ni écrasement.
+- [Guide du stockage R2 pour l'oral](docs/manuals/r2-live-demo.md).
 
 - Publication réelle avec Instagram Login sans Page Facebook, import local chiffré
   du token autorisé, séparation réel/simulé et pont HTTPS limité à un JPEG.
