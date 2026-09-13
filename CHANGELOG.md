@@ -6,6 +6,11 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
+- Mis à jour Ace 14.1.0 vers 14.1.1 pour corriger la validation des commandes
+  avec Node 24.20 et ultérieur, sans figer un ancien correctif Node.
+- Remplacé l'extraction HTML par expression régulière par le parseur parse5
+  pour les empreintes CSP des scripts, avec tests des balises atypiques.
+
 - Corrigé l’expiration prématurée de l’état OAuth LinkedIn : durée explicite
   de dix minutes au lieu de 600 millisecondes, avec tests HTTP du délai,
   de l’expiration et du rejeu.

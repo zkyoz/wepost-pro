@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { parse, type DefaultTreeAdapterTypes } from "parse5";
 
 function httpOrigin(value?: string) {
   try {
@@ -11,13 +12,24 @@ function httpOrigin(value?: string) {
 
 export function inlineScriptHashes(html: string) {
   const hashes = new Set<string>();
-  for (const match of html.matchAll(
-    /<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi,
-  )) {
-    if (/\bsrc\s*=/i.test(match[1]!) || !match[2]) continue;
-    hashes.add(
-      `'sha256-${createHash("sha256").update(match[2]).digest("base64")}'`,
-    );
+  const pending: DefaultTreeAdapterTypes.Node[] = [parse(html)];
+  while (pending.length) {
+    const node = pending.pop()!;
+    if ("tagName" in node && node.tagName === "script") {
+      if (node.attrs.some((attribute) => attribute.name === "src")) continue;
+      const text = node.childNodes
+        .filter((child) => child.nodeName === "#text")
+        .map((child) => (child as DefaultTreeAdapterTypes.TextNode).value)
+        .join("");
+      if (text) {
+        hashes.add(
+          `'sha256-${createHash("sha256").update(text).digest("base64")}'`,
+        );
+      }
+    } else if ("childNodes" in node) {
+      // Reverse the stack insertion to preserve the rendered document order.
+      pending.push(...node.childNodes.toReversed());
+    }
   }
   return [...hashes];
 }

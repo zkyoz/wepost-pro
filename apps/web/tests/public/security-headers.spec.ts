@@ -6,6 +6,24 @@ import {
 import { createHash } from "node:crypto";
 
 describe("public security headers", () => {
+  it("uses HTML parsing for unusual closing tags and quoted attributes", () => {
+    const script = "window.ready=true;";
+    const hash = `'sha256-${createHash("sha256").update(script).digest("base64")}'`;
+    expect(
+      inlineScriptHashes(
+        `<SCRIPT data-label="a > b">${script}</script\t\n bar><script SRC='/external.js'>ignored</script>`,
+      ),
+    ).toEqual([hash]);
+  });
+
+  it("does not hash fake scripts in comments, textarea or inert templates", () => {
+    expect(
+      inlineScriptHashes(
+        "<!-- <script>comment()</script> --><textarea><script>text()</script></textarea><template><script>inert()</script></template>",
+      ),
+    ).toEqual([]);
+  });
+
   it("permits exactly the rendered Nuxt scripts without enabling arbitrary inline code", () => {
     const script = "window.__NUXT__={config:{app:{}}};";
     const hash = `'sha256-${createHash("sha256").update(script).digest("base64")}'`;
