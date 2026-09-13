@@ -33,17 +33,17 @@ Captures à joindre : connexion sans token, organisation/scopes, validation, sta
 
 Cette extension ne remplace pas les résultats historiques ci-dessus.
 
-| Scénario | Résultat vérifié |
-| --- | --- |
-| Profil personnel sans identifiant de Page | Callback simulé HTTP 302, identité issue du client OAuth, jeton chiffré ; test API |
-| Scopes personnels | `openid profile w_member_social`, sans scopes d’organisation ; test du client officiel avec réponses HTTP simulées |
-| Rejeu, cible ambiguë, écriture client | Requêtes refusées ; tests API |
-| Compte simulé présenté au mode réel | Programmation refusée, aucun post externe ; tests API et worker |
-| Auteur personnel et Page | Corps Posts API distincts, identifiant invalide refusé ; tests worker |
-| Image stockée sur le Mac | Lecture du format privé de l’API, clés hachées, refus des liens symboliques ; tests worker |
-| Envoi public confirmé | Annulation de la confirmation empêche la programmation ; test frontend |
-| Statut et lien distant | Actualisation et lien LinkedIn dérivé d’un identifiant distant validé ; test frontend |
-| Connexion réelle et publication sur LinkedIn | Non exécutées : accès développeur et autorisation du compte nécessaires |
+| Scénario                                     | Résultat vérifié                                                                                                   |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Profil personnel sans identifiant de Page    | Callback simulé HTTP 302, identité issue du client OAuth, jeton chiffré ; test API                                 |
+| Scopes personnels                            | `openid profile w_member_social`, sans scopes d’organisation ; test du client officiel avec réponses HTTP simulées |
+| Rejeu, cible ambiguë, écriture client        | Requêtes refusées ; tests API                                                                                      |
+| Compte simulé présenté au mode réel          | Programmation refusée, aucun post externe ; tests API et worker                                                    |
+| Auteur personnel et Page                     | Corps Posts API distincts, identifiant invalide refusé ; tests worker                                              |
+| Image stockée sur le Mac                     | Lecture du format privé de l’API, clés hachées, refus des liens symboliques ; tests worker                         |
+| Envoi public confirmé                        | Annulation de la confirmation empêche la programmation ; test frontend                                             |
+| Statut et lien distant                       | Actualisation et lien LinkedIn dérivé d’un identifiant distant validé ; test frontend                              |
+| Connexion réelle et publication sur LinkedIn | Non exécutées : accès développeur et autorisation du compte nécessaires                                            |
 
 Procédure à suivre : [premier envoi LinkedIn réel](../manuals/linkedin-live-demo.md).
 Aucune migration de schéma ; reconnexion requise pour passer du compte simulé
@@ -78,3 +78,25 @@ Référence distante : `urn:li:share:7504938972733861889`. Cette recette valide
 l’envoi texte du profil personnel ; elle ne remplace pas LI-20 pour une Page
 entreprise et une image, ni les contrôles de préproduction. Le détail et les
 limites sont consignés dans les [preuves de la tâche 10](../evidence/task10.md#premier-envoi-linkedin-réel--13-septembre-2026).
+
+## Recette réelle du profil personnel avec image
+
+Le 13 septembre 2026, sur `codex/bc03-demo` au HEAD `3bd2d79`, les contrôles
+manuels suivants ont été réalisés depuis l'interface :
+
+| Contrôle                          | Résultat observé                                                 |
+| --------------------------------- | ---------------------------------------------------------------- |
+| Création et ajout d'un PNG        | Brouillon créé, média associé et aperçu affiché, 749,6 Ko        |
+| Approbation du contenu avec média | Version 1 approuvée via le compte client de démonstration        |
+| Compatibilité LinkedIn            | Validation réussie sur le profil personnel réel                  |
+| Envoi par le worker               | Statut « Publiée », une tentative réussie                        |
+| Vérification sur LinkedIn         | Auteur et texte attendus, image visible, publication publique    |
+| Persistance du résultat           | Fiche rechargée : statut « Publiée » et même identifiant distant |
+| Console WePost                    | Aucun avertissement ni erreur dans le relevé consulté            |
+
+Référence distante : `urn:li:share:7504950966266388480`. L'envoi personnel
+texte/image est donc vérifié ; LI-20 reste distinct pour la Page entreprise.
+Le [compte rendu détaillé](../evidence/task10.md#envoi-linkedin-réel-avec-image--13-septembre-2026)
+précise le fichier, la publication locale et les limites. Aucun changement
+de code, test automatisé supplémentaire ou nouvelle mesure de couverture
+n'a été réalisé pour cet essai. La CI reste un chantier séparé.

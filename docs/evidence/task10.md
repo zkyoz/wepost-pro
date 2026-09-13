@@ -103,3 +103,36 @@ La présence du post est vérifiée au moment de l’essai ; son lien peut deven
 indisponible si le titulaire le supprime. Aucun second envoi, test de média,
 Page entreprise ou réseau X n’est effectué ici. Les e-mails restent dans
 la boîte locale. Ce succès ne résout pas les échecs CI signalés plus haut.
+
+## Envoi LinkedIn réel avec image — 13 septembre 2026
+
+Recette manuelle de l'interface sur `codex/bc03-demo`, HEAD `3bd2d79`
+au début de l'essai. Aucun changement de code exécutable n'a été nécessaire.
+
+- Publication locale : `fa708dce-7068-424c-8e1b-0631f585a5c7`, version 1.
+- Texte : « Publication de test avec image depuis WePost. »
+- Image : `docs/evidence/task23/screenshots/landing-desktop.png`, capture
+  de la page d'accueil, PNG 1280 × 4865, 767 570 octets. Le visuel a été
+  inspecté avant transfert ; il ne contient pas de données client privées.
+- Téléversement via le formulaire WePost, association et aperçu affichés,
+  alternative textuelle renseignée ; média `c587e4e4-5511-4fe7-bff3-3c4b9eeaa3ea`.
+- Parcours : création agence → ajout du média → en cours → demande de
+  validation → approbation par le compte client de démonstration → retour
+  agence → validation de compatibilité → confirmation d'envoi public.
+- Cible : profil personnel réel Martin BARRE, sans utilisation du compte simulé.
+- Résultat : « Publiée » dans le panneau LinkedIn et dans la fiche après
+  rechargement ; une tentative, affichée « Réussie ».
+- Identifiant distant : `urn:li:share:7504950966266388480`.
+- [Post LinkedIn vérifié](https://www.linkedin.com/feed/update/urn:li:share:7504950966266388480/) :
+  auteur, texte, visibilité mondiale et image contrôlés dans le navigateur.
+  La capture affichée lors de la recette montre effectivement le visuel.
+- Journal console WePost consulté : aucune erreur ni aucun avertissement.
+
+Le test valide le transfert d'une image et la création d'un post personnel
+réel depuis l'application locale. Le stockage média de ce parcours est local,
+pas R2 ; les e-mails restent locaux. Les rôles agence/client ont été joués
+pour la recette, sans intervention d'un client externe. La transmission de
+l'alternative textuelle à LinkedIn n'est pas validée par cette observation.
+Le titulaire peut supprimer le post après vérification, comme le précédent
+post textuel qu'il a indiqué avoir supprimé. Page entreprise, X et correction
+de la CI ne font pas partie de cet essai. Aucune fusion ni mise en production.

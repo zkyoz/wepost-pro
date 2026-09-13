@@ -46,3 +46,13 @@ Le correctif du 13 septembre 2026 ne change ni les composants, ni les labels,
 ni l’ordre du focus. Il rétablit les dix minutes prévues pour terminer la
 connexion externe. Les tests temporels HTTP ne constituent pas un audit
 RGAA ; VoiceOver et les contrôles de zoom restent distincts.
+
+## Recette réelle avec image
+
+Lors de l'essai du 13 septembre 2026, une alternative textuelle a été saisie
+dans le formulaire média et retrouvée dans le nom accessible de l'aperçu
+WePost, côté agence comme côté client. Les statuts « Approuvée », « Publiée »
+et « Réussie » sont présents en texte. L'image publiée a été contrôlée
+visuellement sur LinkedIn ; cette observation ne valide pas la transmission
+de son alternative au réseau social. Aucun nouvel audit axe, VoiceOver,
+clavier complet ou zoom n'est revendiqué pour cette recette.

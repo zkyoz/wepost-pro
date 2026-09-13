@@ -54,7 +54,8 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 - Démarrage LinkedIn réel explicite pour la démo locale, lecture des médias
   persistants par le worker et séparation des comptes réels et simulés.
 - Actualisation du statut et lien vers le post LinkedIn pour un identifiant
-  distant valide. Une publication réelle reste à vérifier avec des accès autorisés.
+  distant valide. Recettes réelles texte seul puis texte avec un PNG validées
+  sur le profil personnel autorisé ; Page entreprise et production non validées.
 
 - Profil oral local isolé : PostgreSQL/Redis dédiés, lanceur des trois builds,
   comptes de démonstration et capture privée des e-mails du worker.

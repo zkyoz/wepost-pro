@@ -54,3 +54,13 @@ effectif de cette ancienne version. L’option explicite `expiresIn: '10m'`
 corrige cet écart. Le `purpose`, le nonce de session à usage unique, les
 liaisons acteur/agence/cible et le contrôle `expiresAt` sont conservés.
 Les callbacks arrivant à dix minutes et les rejeux restent refusés.
+
+## Recette réelle avec image
+
+Le test du 13 septembre 2026 utilise un PNG de la page d'accueil, inspecté
+avant son téléversement, sans données client privées. L'agence a envoyé la
+version approuvée par le compte client de démonstration après confirmation
+explicite de l'envoi public. Les éléments conservés dans la recette sont le
+nom du fichier, les identifiants de publication et le résultat visible, sans
+jeton OAuth ni URL d'upload signée. Ce contrôle nominal ne remplace pas un
+audit de sécurité ni un test de rejeu réel.
