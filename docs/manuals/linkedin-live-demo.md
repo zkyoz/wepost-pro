@@ -87,6 +87,10 @@ Les e-mails restent lisibles dans `.demo/outbox`, sans envoi externe.
 
 ## En cas de problème
 
+- État OAuth invalide ou expiré : revenir dans **LinkedIn** sur WePost et
+  cliquer de nouveau sur **Continuer avec LinkedIn**. Terminer le parcours
+  dans les dix minutes, avec la même session WePost. Ne pas recharger ou
+  partager l’ancienne URL de callback : l’état est à usage unique.
 - Permission refusée : vérifier les produits accordés, puis reconnecter le
   compte. Ne pas ajouter les scopes d’organisation au parcours personnel.
 - Jeton expiré sans possibilité de renouvellement : refaire la connexion OAuth.

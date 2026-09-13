@@ -52,3 +52,20 @@ pas à une conformité RGAA ni à une preuve d’autorisation LinkedIn. Le scén
 E2E existant a été adapté aux deux cibles ; sa nouvelle exécution complète en
 CI reste à vérifier. Cette branche n’est pas fusionnée dans develop/main et
 n’est pas déployée en production.
+
+## Correctif OAuth différé — 13 septembre 2026
+
+- Test rouge : deux échecs sur dix tests LinkedIn avant correction, pour des
+  callbacks différés de deux secondes et neuf minutes.
+- Test vert : dix tests LinkedIn sur dix après correction ; 207 tests API
+  réussis sur `wepost_test`.
+- Couverture API mesurée : lignes 86,56 %, branches 71,90 %, fonctions 83,92 %.
+- Formatage des deux fichiers TypeScript, lint ciblé, TypeScript API et build
+  API : réussis.
+- Après redémarrage : frontend, `/health/live` et `/health/ready` HTTP 200.
+- Parcours navigateur : WePost agence → Continuer avec LinkedIn → page
+  d’identification LinkedIn. Retour réel à vérifier après la saisie du titulaire.
+
+La [fiche de bogue](../bugs/linkedin-oauth-state-expiry.md) décrit le périmètre
+et les limites. La CI précédente de la PR #29 comporte des échecs distincts ;
+les résultats locaux ci-dessus ne sont pas présentés comme une CI verte.

@@ -6,6 +6,10 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
+- Corrigé l’expiration prématurée de l’état OAuth LinkedIn : durée explicite
+  de dix minutes au lieu de 600 millisecondes, avec tests HTTP du délai,
+  de l’expiration et du rejeu.
+
 - Corrigé la conversion de la date proposée dans le panneau LinkedIn vers
   l’heure locale du navigateur.
 

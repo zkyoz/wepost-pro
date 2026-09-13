@@ -39,3 +39,10 @@ confirmation d’envoi réel et l’actualisation. Le contrôle visuel BC03 port
 sur Chromium 1440 × 1000 et 390 × 844, en mode de connexion simulée. Il ne
 remplace pas VoiceOver, le zoom 200 %, le reflow 320 px ou une recette OAuth
 réelle, qui restent à exécuter.
+
+## Correctif de durée OAuth
+
+Le correctif du 13 septembre 2026 ne change ni les composants, ni les labels,
+ni l’ordre du focus. Il rétablit les dix minutes prévues pour terminer la
+connexion externe. Les tests temporels HTTP ne constituent pas un audit
+RGAA ; VoiceOver et les contrôles de zoom restent distincts.

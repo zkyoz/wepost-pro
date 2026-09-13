@@ -49,3 +49,17 @@ Procédure à suivre : [premier envoi LinkedIn réel](../manuals/linkedin-live-d
 Aucune migration de schéma ; reconnexion requise pour passer du compte simulé
 au compte réel. Le simple retour au mode simulé ne supprime ni les données ni
 les jetons, mais bloque l’utilisation d’un compte réel dans ce mode.
+
+## Correctif de durée OAuth — 13 septembre 2026
+
+- Avant correction : les deux nouveaux tests avec un délai de deux secondes
+  et neuf minutes échouent (HTTP 400 au lieu de 302).
+- Après correction : dix tests HTTP LinkedIn réussissent, dont les trois
+  nouveaux cas temporels ; l’expiration à dix minutes et le rejeu sont refusés.
+- Suite API complète : 207 tests réussis sur la base dédiée `wepost_test`.
+- Build API corrigé redémarré localement : frontend, liveness et readiness
+  répondent HTTP 200. La connexion réelle est relancée dans le navigateur ;
+  la saisie LinkedIn par le titulaire reste nécessaire pour vérifier son retour.
+
+Les appels LinkedIn des tests sont simulés ; aucun post réel n’est créé par
+ces contrôles. Voir la [fiche du correctif](../bugs/linkedin-oauth-state-expiry.md).

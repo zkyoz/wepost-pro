@@ -44,3 +44,13 @@ sur loopback et chemin absolu. Les clés sont hachées, les liens symboliques
 refusés et la taille du fichier lue est bornée. Cette variante ne remplace pas
 R2 en production. Le risque résiduel de résultat distant incertain décrit
 plus haut demeure : vérifier LinkedIn avant une relance après incident.
+
+## Correction de la durée de l’état OAuth
+
+Le 13 septembre 2026, un test différé a révélé que la valeur numérique `600`
+était interprétée en millisecondes par le chiffrement installé. La durée de
+dix minutes annoncée plus haut était donc l’intention, pas le comportement
+effectif de cette ancienne version. L’option explicite `expiresIn: '10m'`
+corrige cet écart. Le `purpose`, le nonce de session à usage unique, les
+liaisons acteur/agence/cible et le contrôle `expiresAt` sont conservés.
+Les callbacks arrivant à dix minutes et les rejeux restent refusés.

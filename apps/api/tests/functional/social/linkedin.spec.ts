@@ -15,6 +15,7 @@ import { test } from '@japa/runner'
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
 import { createHash, randomUUID } from 'node:crypto'
+import { mock } from 'node:test'
 
 const agencyId = '80000000-0000-4000-8000-000000000001'
 const password = 'correct-horse-battery-staple'
@@ -185,6 +186,49 @@ test.group('LinkedIn publishing HTTP', () => {
       .withSession(callback.session())
     reused.assertStatus(400)
   })
+
+  for (const elapsedMs of [2_000, 9 * 60_000, 10 * 60_000]) {
+    test(`enforces the ten-minute OAuth lifetime after ${elapsedMs} milliseconds`, async ({
+      client,
+      assert,
+    }) => {
+      const agency = await user('agency', `oauth-delay-${elapsedMs}`)
+      mock.timers.enable({ apis: ['Date'], now: new Date() })
+      try {
+        const start = await client
+          .post('/api/v1/social/linkedin/oauth/start')
+          .loginAs(agency)
+          .withCsrfToken()
+          .json({ targetType: 'member' })
+        start.assertStatus(200)
+        const authorization = new URL(start.body().data.authorizationUrl)
+
+        // Advance only the clock; no real LinkedIn request or waiting is needed.
+        mock.timers.tick(elapsedMs)
+        const callback = await client
+          .get(`${authorization.pathname}${authorization.search}`)
+          .withSession(start.session())
+          .redirects(0)
+
+        if (elapsedMs >= 10 * 60_000) {
+          callback.assertStatus(400)
+          callback.assertBodyContains({
+            errors: [{ message: 'État OAuth invalide ou expiré.' }],
+          })
+          assert.isNull(await SocialAccount.query().where('agencyId', agencyId).first())
+        } else {
+          callback.assertStatus(302)
+          assert.isNotNull(await SocialAccount.query().where('agencyId', agencyId).first())
+          const reused = await client
+            .get(`${authorization.pathname}${authorization.search}`)
+            .withSession(callback.session())
+          reused.assertStatus(400)
+        }
+      } finally {
+        mock.timers.reset()
+      }
+    })
+  }
 
   test('rejects ambiguous targets, missing Page ids and client account connection', async ({
     client,

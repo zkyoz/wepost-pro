@@ -104,7 +104,10 @@ export default class LinkedInController {
       expiresAt: Date.now() + 10 * 60_000,
     }
     session.put('linkedin_oauth_nonce', nonce)
-    const state = encryption.encrypt(JSON.stringify(statePayload), 600, 'linkedin:oauth-state')
+    const state = encryption.encrypt(JSON.stringify(statePayload), {
+      expiresIn: '10m',
+      purpose: 'linkedin:oauth-state',
+    })
     return response.ok({
       data: { authorizationUrl: getLinkedInOAuthClient().authorizationUrl(state, targetType) },
     })
