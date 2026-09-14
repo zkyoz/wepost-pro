@@ -47,3 +47,15 @@ les preuves publiques. La [recette réelle](../evidence/r2-demo/verification.md)
 a confirmé une publication, sans duplication de tentative.
 
 Les tests couvrent state/rejeu, chiffrement, rôle client, validation, formats, version et empreinte, token expiré, conteneur image/vidéo, attente, timeout, 429, 5xx, erreurs définitives, idempotence, retry et révocation. Tous les appels Meta sont simulés.
+
+## Correctif multiréseau — 14 septembre 2026
+
+La [fiche du correctif](../bugs/multinetwork-partial-publication.md) décrit la
+reprise d'un réseau restant après le succès de l'autre, les protections serveur,
+les résultats des tests et les limites de validation. Les deux ordres
+Instagram/LinkedIn sont couverts par les tests sans appels externes.
+
+La [recette réelle multiréseau](../recette/multinetwork-live.md) a ensuite
+confirmé la reprise de la première fiche et une nouvelle publication complète
+sur les deux comptes autorisés, une seule tentative par cible. Aucun jeton,
+URL signée, migration ou modification des droits n'a été nécessaire.

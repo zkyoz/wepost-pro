@@ -24,6 +24,42 @@ const { linkedinApi } = vi.hoisted(() => ({
 mockNuxtImport("useLinkedInApi", () => () => linkedinApi);
 
 describe("LinkedInPublishingPanel", () => {
+  it("only unlocks a legacy partial delivery after successful server validation", async () => {
+    linkedinApi.validate.mockResolvedValueOnce({
+      data: { valid: false, errors: ["Validation requise"], warnings: [] },
+    });
+    const wrapper = await mountSuspended(LinkedInPublishingPanel, {
+      props: {
+        publicationId: "publication",
+        role: "agency",
+        status: "published",
+        scheduledAt: null,
+      },
+    });
+    const program = () =>
+      wrapper
+        .findAll("button")
+        .find((button) => button.text() === "Programmer sur LinkedIn")!;
+    const validate = () =>
+      wrapper
+        .findAll("button")
+        .find((button) => button.text() === "Valider pour LinkedIn")!;
+    expect(program().attributes("disabled")).toBeDefined();
+    await validate().trigger("click");
+    await vi.waitFor(() => expect(linkedinApi.validate).toHaveBeenCalled());
+    await vi.waitFor(() =>
+      expect(wrapper.text()).toContain("Validation requise"),
+    );
+    expect(program().attributes("disabled")).toBeDefined();
+    linkedinApi.validate.mockResolvedValueOnce({
+      data: { valid: true, errors: [], warnings: [] },
+    });
+    await validate().trigger("click");
+    await vi.waitFor(() =>
+      expect(program().attributes("disabled")).toBeUndefined(),
+    );
+  });
+
   it("offers accessible validation and scheduling controls to the agency", async () => {
     const wrapper = await mountSuspended(LinkedInPublishingPanel, {
       props: {
@@ -156,6 +192,7 @@ describe("LinkedInPublishingPanel", () => {
       .find((button) => button.text() === "Actualiser le statut LinkedIn")!
       .trigger("click");
     await vi.waitFor(() => expect(wrapper.text()).toContain("Publiée"));
+    expect(wrapper.emitted("refreshed")).toHaveLength(1);
     expect(wrapper.get('a[target="_blank"]').attributes("href")).toBe(
       "https://www.linkedin.com/feed/update/urn:li:share:12345/",
     );

@@ -14,7 +14,7 @@ const props = defineProps<{
   status: string;
   scheduledAt: string | null;
 }>();
-const emit = defineEmits<{ scheduled: [] }>();
+const emit = defineEmits<{ scheduled: []; refreshed: [] }>();
 const api = useLinkedInApi();
 const canManage = computed(
   () => props.role === "admin" || props.role === "agency",
@@ -141,6 +141,7 @@ async function refreshStatus() {
   isLoading.value = true;
   try {
     await load();
+    emit("refreshed");
     announcement.value = "Le statut LinkedIn est à jour.";
   } catch (cause) {
     error.value = errorText(cause);
@@ -232,7 +233,8 @@ await load();
             :disabled="
               !isHydrated ||
               isLoading ||
-              !['approved', 'scheduled'].includes(status)
+              (!['approved', 'scheduled'].includes(status) &&
+                !(status === 'published' && validation?.valid))
             "
             @click="program"
           >

@@ -34,3 +34,15 @@ non fourni ne doit pas être affiché comme une absence d’autorisation.
 - expérience lors d’une attente de traitement longue et d’un token expiré.
 
 Aucune conformité RGAA complète n’est déclarée avant ces contrôles.
+
+## Correctif multiréseau — 14 septembre 2026
+
+La [fiche du correctif](../bugs/multinetwork-partial-publication.md) décrit la
+reprise d'un réseau restant après le succès de l'autre, les protections serveur,
+les résultats des tests et les limites de validation. Les deux ordres
+Instagram/LinkedIn sont couverts par les tests sans appels externes.
+
+La [recette réelle multiréseau](../recette/multinetwork-live.md) a ensuite
+confirmé la reprise de la première fiche et une nouvelle publication complète
+sur les deux comptes autorisés, une seule tentative par cible. Aucun jeton,
+URL signée, migration ou modification des droits n'a été nécessaire.

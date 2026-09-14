@@ -87,6 +87,15 @@ function applyPinterestSchedule() {
 function applyTikTokSchedule() {
   publication.value.status = "scheduled";
 }
+
+async function refreshPublicationStatus() {
+  try {
+    publication.value = (await api.get(publication.value.id)).data;
+  } catch {
+    announcement.value =
+      "Le statut général n’a pas pu être actualisé. Rechargez la fiche pour réessayer.";
+  }
+}
 </script>
 
 <template>
@@ -314,6 +323,7 @@ function applyTikTokSchedule() {
           :status="publication.status"
           :scheduled-at="publication.scheduledAt"
           @scheduled="applyInstagramSchedule"
+          @refreshed="refreshPublicationStatus"
         />
         <LinkedInPublishingPanel
           v-if="user && publication.targetNetworks.includes('linkedin')"
@@ -322,6 +332,7 @@ function applyTikTokSchedule() {
           :status="publication.status"
           :scheduled-at="publication.scheduledAt"
           @scheduled="applyLinkedInSchedule"
+          @refreshed="refreshPublicationStatus"
         />
         <PinterestPublishingPanel
           v-if="user && publication.targetNetworks.includes('pinterest')"

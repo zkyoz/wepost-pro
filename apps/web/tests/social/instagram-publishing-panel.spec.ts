@@ -25,6 +25,42 @@ const { instagramApi } = vi.hoisted(() => ({
 mockNuxtImport("useInstagramApi", () => () => instagramApi);
 
 describe("InstagramPublishingPanel", () => {
+  it("only unlocks a legacy partial delivery after successful server validation", async () => {
+    instagramApi.validate.mockResolvedValueOnce({
+      data: { valid: false, errors: ["Validation requise"], warnings: [] },
+    });
+    const wrapper = await mountSuspended(InstagramPublishingPanel, {
+      props: {
+        publicationId: "publication",
+        role: "agency",
+        status: "published",
+        scheduledAt: null,
+      },
+    });
+    const program = () =>
+      wrapper
+        .findAll("button")
+        .find((button) => button.text() === "Programmer sur Instagram")!;
+    const validate = () =>
+      wrapper
+        .findAll("button")
+        .find((button) => button.text() === "Valider pour Instagram")!;
+    expect(program().attributes("disabled")).toBeDefined();
+    await validate().trigger("click");
+    await vi.waitFor(() => expect(instagramApi.validate).toHaveBeenCalled());
+    await vi.waitFor(() =>
+      expect(wrapper.text()).toContain("Validation requise"),
+    );
+    expect(program().attributes("disabled")).toBeDefined();
+    instagramApi.validate.mockResolvedValueOnce({
+      data: { valid: true, errors: [], warnings: [] },
+    });
+    await validate().trigger("click");
+    await vi.waitFor(() =>
+      expect(program().attributes("disabled")).toBeUndefined(),
+    );
+  });
+
   it("does not publish a real account when confirmation is declined", async () => {
     instagramApi.accounts.mockResolvedValueOnce({
       data: [
@@ -93,6 +129,7 @@ describe("InstagramPublishingPanel", () => {
       .trigger("click");
     await flushPromises();
     expect(wrapper.text()).toContain("Statut Instagram : Publiée.");
+    expect(wrapper.emitted("refreshed")).toHaveLength(1);
     expect(instagramApi.schedule).not.toHaveBeenCalled();
   });
   it("offers accessible validation and scheduling controls to the agency", async () => {

@@ -14,7 +14,7 @@ const props = defineProps<{
   status: string;
   scheduledAt: string | null;
 }>();
-const emit = defineEmits<{ scheduled: [] }>();
+const emit = defineEmits<{ scheduled: []; refreshed: [] }>();
 const api = useInstagramApi();
 const canManage = computed(
   () => props.role === "admin" || props.role === "agency",
@@ -141,6 +141,7 @@ async function refreshStatus() {
   error.value = "";
   try {
     schedule.value = (await api.status(props.publicationId)).data;
+    emit("refreshed");
     announcement.value = schedule.value
       ? `Statut Instagram : ${scheduleLabels[schedule.value.status]}.`
       : "Aucune programmation Instagram.";
@@ -217,7 +218,8 @@ await load();
             :disabled="
               !isHydrated ||
               isLoading ||
-              !['approved', 'scheduled'].includes(status)
+              (!['approved', 'scheduled'].includes(status) &&
+                !(status === 'published' && validation?.valid))
             "
             @click="program"
           >

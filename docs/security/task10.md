@@ -64,3 +64,15 @@ explicite de l'envoi public. Les éléments conservés dans la recette sont le
 nom du fichier, les identifiants de publication et le résultat visible, sans
 jeton OAuth ni URL d'upload signée. Ce contrôle nominal ne remplace pas un
 audit de sécurité ni un test de rejeu réel.
+
+## Correctif multiréseau — 14 septembre 2026
+
+La [fiche du correctif](../bugs/multinetwork-partial-publication.md) décrit la
+reprise d'un réseau restant après le succès de l'autre, les protections serveur,
+les résultats des tests et les limites de validation. Les deux ordres
+Instagram/LinkedIn sont couverts par les tests sans appels externes.
+
+La [recette réelle multiréseau](../recette/multinetwork-live.md) a ensuite
+confirmé la reprise de la première fiche et une nouvelle publication complète
+sur les deux comptes autorisés, une seule tentative par cible. Aucun jeton,
+URL signée, migration ou modification des droits n'a été nécessaire.

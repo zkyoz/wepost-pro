@@ -100,3 +100,15 @@ Le [compte rendu détaillé](../evidence/task10.md#envoi-linkedin-réel-avec-ima
 précise le fichier, la publication locale et les limites. Aucun changement
 de code, test automatisé supplémentaire ou nouvelle mesure de couverture
 n'a été réalisé pour cet essai. La CI reste un chantier séparé.
+
+## Correctif multiréseau — 14 septembre 2026
+
+La [fiche du correctif](../bugs/multinetwork-partial-publication.md) décrit la
+reprise d'un réseau restant après le succès de l'autre, les protections serveur,
+les résultats des tests et les limites de validation. Les deux ordres
+Instagram/LinkedIn sont couverts par les tests sans appels externes.
+
+La [recette réelle multiréseau](../recette/multinetwork-live.md) a ensuite
+confirmé la reprise de la première fiche et une nouvelle publication complète
+sur les deux comptes autorisés, une seule tentative par cible. Aucun jeton,
+URL signée, migration ou modification des droits n'a été nécessaire.

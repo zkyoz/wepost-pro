@@ -89,16 +89,19 @@ async function approvedPublication(owner: User, parent: Project) {
   return publication
 }
 
-async function account(owner: User) {
+async function account(owner: User, network: 'linkedin' | 'instagram' = 'linkedin') {
   return SocialAccount.create({
     agencyId,
-    network: 'linkedin',
+    network,
     externalAccountId: '123456789',
     externalAccountName: 'Wepost Test',
     encryptedAccessToken: encryptSocialToken('page-token', tokenKey),
     encryptedRefreshToken: null,
     expiresAt: DateTime.utc().plus({ days: 30 }),
-    scopes: ['r_organization_admin', 'w_organization_social'],
+    scopes:
+      network === 'linkedin'
+        ? ['r_organization_admin', 'w_organization_social']
+        : ['instagram_basic', 'instagram_content_publish'],
     metadataJson: { role: 'ADMINISTRATOR' },
     status: 'connected',
     createdBy: owner.id,
@@ -394,6 +397,93 @@ test.group('LinkedIn publishing HTTP', () => {
     assert.equal(linkedin.status, 'revoked')
     assert.isNull(linkedin.encryptedAccessToken)
   })
+
+  for (const network of ['linkedin', 'instagram'] as const) {
+    test(`schedules remaining ${network} without republishing the other network`, async ({
+      client,
+      assert,
+    }) => {
+      const agency = await user('agency', 'late-network')
+      const customer = await user('client', 'late-network')
+      const parent = await project(agency, customer)
+      const publication = await approvedPublication(agency, parent)
+      publication.merge({ targetNetworks: ['instagram', 'linkedin'], status: 'published' })
+      await publication.save()
+      const linkedin = await account(agency, network)
+      const instagram = await SocialAccount.create({
+        agencyId,
+        network: network === 'linkedin' ? 'instagram' : 'linkedin',
+        externalAccountId: 'instagram-finished',
+        externalAccountName: 'Instagram test',
+        status: 'connected',
+        scopes: [],
+        metadataJson: {},
+        createdBy: agency.id,
+      })
+      const finished = await ScheduledPublication.create({
+        publicationId: publication.id,
+        network: network === 'linkedin' ? 'instagram' : 'linkedin',
+        accountId: instagram.id,
+        publicationVersion: 2,
+        runAt: DateTime.utc(),
+        status: 'published',
+        idempotencyKey: 'f'.repeat(64),
+        payloadHash: 'e'.repeat(64),
+      })
+      const url = `/api/v1/social/${network}/publications/${publication.id}` as const
+      // A completed older version cannot authorize an unapproved revision.
+      publication.approvedVersion = null
+      await publication.save()
+      const unapproved = await client
+        .post(`${url}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      unapproved.assertStatus(422)
+      publication.approvedVersion = 2
+      await publication.save()
+      finished.publicationVersion = 1
+      await finished.save()
+      const outdated = await client
+        .post(`${url}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      outdated.assertStatus(422)
+      finished.publicationVersion = 2
+      await finished.save()
+      const forbidden = await client
+        .post(`${url}/schedule`)
+        .loginAs(customer)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      forbidden.assertStatus(403)
+      const validation = await client
+        .post(`${url}/validate`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      validation.assertBodyContains({ data: { valid: true } })
+      const scheduled = await client
+        .post(`${url}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      scheduled.assertStatus(201)
+      const duplicate = await client
+        .post(`${url}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      duplicate.assertStatus(200)
+      duplicate.assertBodyContains({ data: { id: scheduled.body().data.id } })
+      await finished.refresh()
+      await publication.refresh()
+      assert.equal(finished.status, 'published')
+      assert.equal(publication.status, 'scheduled')
+      assert.lengthOf(await ScheduledPublication.query().where('publicationId', publication.id), 2)
+    })
+  }
 
   test('keeps the publication scheduled while another network is still active', async ({
     assert,

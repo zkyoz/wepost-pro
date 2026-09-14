@@ -5,6 +5,7 @@ import type Publication from '#models/publication'
 import type ScheduledPublication from '#models/scheduled_publication'
 import type SocialAccount from '#models/social_account'
 import db from '@adonisjs/lucid/services/db'
+import { statusForRemainingNetwork } from '#services/social/social_status_service'
 
 export function toSocialAccountView(account: SocialAccount) {
   return {
@@ -89,7 +90,7 @@ export async function validatePublicationForLinkedIn(
   effectiveText: string = publication.baseText
 ) {
   const result = validateLinkedInPublication({
-    status: publication.status,
+    status: await statusForRemainingNetwork(publication, 'linkedin'),
     contentVersion: publication.contentVersion,
     approvedVersion: publication.approvedVersion,
     targetNetworks: publication.targetNetworks,
