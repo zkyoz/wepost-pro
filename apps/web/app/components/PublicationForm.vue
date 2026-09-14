@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ApiValidationError } from "~/types/auth";
+import { toLocalDateTimeInput } from "~/utils/calendar";
 import {
   SOCIAL_NETWORKS,
   type Publication,
@@ -22,18 +23,19 @@ const networkLabels: Record<SocialNetwork, string> = {
   tiktok: "TikTok",
 };
 
+const initialTimezone =
+  props.publication?.timezone ??
+  props.defaultTimezone ??
+  Intl.DateTimeFormat().resolvedOptions().timeZone ??
+  "UTC";
 const form = reactive<PublicationInput>({
   title: props.publication?.title ?? "",
   baseText: props.publication?.baseText ?? "",
   targetNetworks: props.publication?.targetNetworks ?? [],
   scheduledAt: props.publication?.scheduledAt
-    ? props.publication.scheduledAt.slice(0, 16)
+    ? toLocalDateTimeInput(props.publication.scheduledAt, initialTimezone)
     : null,
-  timezone:
-    props.publication?.timezone ??
-    props.defaultTimezone ??
-    Intl.DateTimeFormat().resolvedOptions().timeZone ??
-    "UTC",
+  timezone: initialTimezone,
 });
 const initial = JSON.stringify(form);
 const dirty = computed(() => JSON.stringify(form) !== initial);

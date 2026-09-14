@@ -6,6 +6,23 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
+- Conservé l'heure locale et le fuseau d'une publication lors de la modification
+  du texte, avec tests de non-régression été/hiver, UTC et changement de jour.
+
+- Corrigé le statut global des publications multiréseaux lorsqu'une cible
+  termine avant la programmation de l'autre ; ajouté la reprise sécurisée des
+  anciennes fiches bloquées et la synchronisation du résumé après actualisation.
+  Voir [le correctif et ses tests](docs/bugs/multinetwork-partial-publication.md).
+
+- Corrigé l'hydratation de la supervision : un même instantané est partagé entre
+  le rendu serveur et le navigateur, sans double requête au chargement ;
+  l'actualisation manuelle est conservée.
+- Recentré les dialogues natifs avec hauteur limitée, défilement interne et
+  noms accessibles ; corrigé les contrastes du panneau de validation client,
+  des titres de la landing et des badges de supervision désactivés.
+- Rétabli la priorité visuelle des boutons principaux et ajouté une page
+  d'erreur aux couleurs de l'application, compatible avec les deux thèmes.
+
 - Corrigé la signature des uploads R2 pour ne pas signer le checksum d'un corps
   vide avant l'envoi du fichier par le navigateur ; validation SHA-256 conservée.
 - Autorisé l'origine R2 configurée dans les directives CSP de connexion, image
