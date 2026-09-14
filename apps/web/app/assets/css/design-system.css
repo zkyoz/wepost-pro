@@ -297,6 +297,8 @@ button:disabled {
   box-shadow: none;
 }
 .app-header__context {
+  min-width: 0;
+  overflow-wrap: anywhere;
   font-size: 13px;
   font-weight: 600;
   color: var(--ink-700);
@@ -412,7 +414,7 @@ button:disabled {
   flex-wrap: wrap;
 }
 .dashboard
-  :is(
+  :where(
     button:not([role="tab"]):not([role="switch"]):not([role="checkbox"]),
     .button-link
   ),
@@ -436,7 +438,7 @@ button:disabled {
   align-items: center;
   gap: 8px;
 }
-.dashboard :is(button:not([role="tab"]), .button-link):hover:not(:disabled),
+.dashboard :where(button:not([role="tab"]), .button-link):hover:not(:disabled),
 .button-secondary:hover {
   background: var(--surface-muted);
   border-color: #84978a;
@@ -1132,6 +1134,7 @@ textarea::placeholder {
   color: var(--ink-800);
 }
 .table-scroll {
+  position: relative;
   border-radius: 9px;
 }
 .supervision-summary {
@@ -1203,15 +1206,75 @@ textarea::placeholder {
   border-radius: 7px;
 }
 dialog {
+  margin: auto;
+  max-width: calc(100vw - 2rem);
+  max-height: calc(100dvh - 2rem);
+  overflow: auto;
+  overscroll-behavior: contain;
   color: var(--ink-950);
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 12px;
   box-shadow: 0 24px 90px #0005;
 }
-dialog::backdrop {
+dialog::backdrop,
+.confirm-dialog::backdrop {
   background: #121b18a6;
   backdrop-filter: blur(3px);
+}
+.dialog-actions {
+  flex-wrap: wrap;
+}
+.admin-details-list > div,
+.admin-details-list dd {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.review-panel {
+  background: var(--surface-muted);
+  color: var(--ink-950);
+  border: 1px solid var(--line);
+}
+
+.system-status--disabled {
+  color: var(--ink-700);
+  background: var(--surface-muted);
+}
+.error-page {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--canvas);
+  color: var(--ink-950);
+}
+.error-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.5rem;
+}
+.error-page .brand {
+  color: inherit;
+}
+.error-page__content {
+  width: min(100% - 2rem, 38rem);
+  margin: auto;
+  padding-block: 3rem;
+  text-align: center;
+}
+.error-page__code {
+  color: var(--coral-dark);
+  font-size: clamp(3rem, 12vw, 6rem);
+  font-weight: 750;
+  line-height: 1;
+}
+.error-page__content h1 {
+  font-size: clamp(1.75rem, 5vw, 2.5rem);
+  margin-block: 1.5rem 1rem;
+}
+.error-page__content p {
+  margin-bottom: 1.5rem;
 }
 .calendar-toolbar {
   padding: 20px;
@@ -1697,6 +1760,15 @@ dialog::backdrop {
 .public-section h2 {
   font-weight: 580;
   letter-spacing: -0.04em;
+}
+#fonctionnalites .public-section__intro h2 {
+  color: #fff;
+}
+.feature-grid h3 {
+  color: var(--ink-950);
+}
+.public-problem__grid > div {
+  min-width: 0;
 }
 .public-section p {
   color: var(--slate-600);

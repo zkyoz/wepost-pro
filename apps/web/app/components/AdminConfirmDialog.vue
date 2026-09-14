@@ -7,6 +7,7 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ confirm: [] }>();
 const dialog = ref<HTMLDialogElement>();
+const titleId = useId();
 const cancelButton = ref<HTMLButtonElement>();
 let trigger: HTMLElement | null = null;
 
@@ -34,8 +35,13 @@ defineExpose({ open });
 </script>
 
 <template>
-  <dialog ref="dialog" class="confirm-dialog" @close="restoreFocus">
-    <h2>{{ props.title }}</h2>
+  <dialog
+    ref="dialog"
+    class="confirm-dialog"
+    :aria-labelledby="titleId"
+    @close="restoreFocus"
+  >
+    <h2 :id="titleId">{{ props.title }}</h2>
     <p>{{ props.message }}</p>
     <div class="dialog-actions">
       <button ref="cancelButton" type="button" @click="close">Annuler</button>

@@ -6,6 +6,8 @@ Le bouton soleil/lune, en haut à droite, permet de changer le thème. Ce choix
 est conservé après un rechargement et entre les pages, dans le même navigateur.
 Il est également disponible sur la page d'accueil, la connexion et l'inscription.
 Le changement de thème ne déconnecte pas le compte.
+Les pages d'erreur conservent également ce thème et proposent un retour à
+l'accueil sans afficher de détail technique interne.
 
 ## Navigation
 
@@ -13,6 +15,10 @@ Sur ordinateur, la barre latérale regroupe les écrans autorisés pour le rôle
 connecté. Sur mobile, le bouton de menu ouvre cette navigation dans un panneau.
 Le panneau se ferme en choisissant une destination ou avec la touche Échap ;
 le focus revient alors au bouton de menu.
+
+Les fenêtres de détail et de confirmation sont centrées, y compris sur mobile.
+Si leur contenu est long, il défile à l'intérieur de la fenêtre. « Annuler »,
+« Fermer » ou Échap permet de revenir à l'écran sans valider l'action.
 
 Le tableau de bord donne accès aux projets, aux prochaines publications et au
 calendrier. Les compteurs et les publications affichés restent les données de

@@ -18,16 +18,21 @@ const statusLabels: Record<SystemComponentStatus, string> = {
   unknown: "Inconnu",
 };
 
+function applySnapshot(snapshot: SystemStatus) {
+  system.value = snapshot;
+  message.value = `État actualisé à ${new Intl.DateTimeFormat("fr-FR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    timeZone: "Europe/Paris",
+  }).format(new Date(snapshot.generatedAt))}.`;
+}
+
 async function load() {
   loading.value = true;
   errorMessage.value = "";
   try {
-    system.value = (await adminApi.systemStatus()).data;
-    message.value = `État actualisé à ${new Intl.DateTimeFormat("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      second: "2-digit",
-    }).format(new Date(system.value.generatedAt))}.`;
+    applySnapshot((await adminApi.systemStatus()).data);
   } catch {
     errorMessage.value = "Impossible de récupérer l’état du système.";
   } finally {
@@ -47,7 +52,15 @@ async function retry(jobId: string) {
   }
 }
 
-await load();
+// Reuse the server snapshot during hydration: live metrics change between calls.
+const { data: initialSnapshot, error: initialError } = await useAsyncData(
+  "admin-system-status",
+  async () => (await adminApi.systemStatus()).data,
+);
+if (initialSnapshot.value) applySnapshot(initialSnapshot.value);
+if (initialError.value)
+  errorMessage.value = "Impossible de récupérer l’état du système.";
+loading.value = false;
 </script>
 
 <template>
@@ -199,6 +212,7 @@ await load();
                         ? new Intl.DateTimeFormat("fr-FR", {
                             dateStyle: "short",
                             timeStyle: "short",
+                            timeZone: "Europe/Paris",
                           }).format(new Date(job.failedAt))
                         : "N/A"
                     }}

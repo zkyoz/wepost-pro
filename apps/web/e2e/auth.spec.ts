@@ -1,6 +1,7 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
 import { randomUUID } from "node:crypto";
+import { expectTextContrast } from "./visual-assertions";
 
 async function waitForNuxt(page: Page) {
   await expect(page.locator("html")).toHaveAttribute("data-nuxt-ready", "true");
@@ -14,8 +15,10 @@ async function openNavigation(page: Page) {
   if (
     (await trigger.isVisible()) &&
     !(await page.getByRole("dialog").isVisible())
-  )
+  ) {
     await trigger.click();
+    await expect(page.getByRole("dialog")).toBeVisible();
+  }
 }
 
 async function navigateSection(page: Page, name: string) {
@@ -438,6 +441,20 @@ test.describe("session authentication", () => {
       page.getByRole("heading", { name: "Commentaires et validation" }),
     ).toBeVisible();
     const commentInput = page.getByLabel("Ajouter un commentaire");
+    for (const theme of ["dark", "light"]) {
+      await page
+        .getByRole("button", {
+          name:
+            theme === "dark"
+              ? "Passer au thème sombre"
+              : "Passer au thème clair",
+          exact: true,
+        })
+        .click();
+      await expectTextContrast(page.locator(".review-panel h3"));
+      await expectTextContrast(page.locator(".review-panel label"));
+      await expectTextContrast(page.locator("#review-help"));
+    }
     const publishComment = page.getByRole("button", {
       name: "Publier le commentaire",
     });
@@ -755,10 +772,15 @@ test.describe("session authentication", () => {
     await waitForNuxt(page);
 
     await page.getByRole("link", { name: "Modifier" }).click();
+    await expect(page).toHaveURL(/\/edit$/);
     await page
       .locator("#publication-text")
       .fill("Publication mise à jour après les annotations du client.");
+    await expect(page.locator(".unsaved-indicator")).toHaveText(
+      "Modifications non enregistrées",
+    );
     await page.getByRole("button", { name: "Enregistrer" }).click();
+    await expect(page).toHaveURL(publicationUrl);
     await page
       .getByRole("button", {
         name: "Ouvrir les annotations de campagne-e2e.jpg",

@@ -28,11 +28,12 @@ des formulaires et des outils, plutôt que d'être démontées à chaque onglet.
 
 ## Vérification
 
-- Vitest : 45 fichiers, 115 tests réussis. Couverture frontend : 84,96 % des
+- Vitest : 46 fichiers, 117 tests réussis. Couverture frontend : 84,96 % des
   lignes et 77,35 % des branches mesurées.
-- Playwright : 24 tests réussis sur Chromium ordinateur et mobile, dont la
+- Playwright : 30 tests réussis sur Chromium ordinateur et mobile, dont la
   persistance du thème, les contrastes et le parcours métier multi-rôle.
 - ESLint et TypeScript : réussis.
+- Formatage Prettier et build Nuxt compilé : réussis.
 - Audit des dépendances de production : aucun niveau haut ou critique ; deux
   alertes modérées sur `qs` et une faible sur `esbuild` transitif restent
   signalées. Le module Nuxt Fonts est désactivé et les polices sont locales ;
@@ -53,6 +54,44 @@ Les nouveaux runs E2E déposent leurs captures dans leurs artefacts de test,
 sans écraser les fichiers historiques de `docs/evidence`.
 Les contrôles automatisés axe portent sur les violations sérieuses et critiques
 des écrans testés ; ils ne remplacent pas un audit RGAA manuel complet.
+
+## Corrections après audit visuel
+
+L'audit du build `208297c` a identifié des problèmes d'interface corrigés sans
+modifier les contrats API, les droits ou les règles de publication :
+
+| Défaut observé                                       | Correction                                                                          |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| Six messages d'hydratation sur la supervision        | Instantané SSR partagé avec `useAsyncData`, date formatée dans un fuseau explicite. |
+| Dialogues placés en haut à gauche                    | Centrage, taille limitée au viewport, défilement interne et titre accessible.       |
+| Débordement à 320 pixels dans la gestion des comptes | Labels invisibles contenus dans le tableau défilant, sans perte d'accessibilité.    |
+| Panneau de validation client illisible en sombre     | Couleurs de texte et de surface adaptées au thème.                                  |
+| Titres de fonctionnalités peu ou pas visibles        | Couleurs de texte corrigées dans les deux thèmes.                                   |
+| Bouton principal remplacé par un bouton neutre       | Spécificité du sélecteur générique diminuée.                                        |
+| Badges « Désactivé » peu contrastés en sombre        | Fond sémantique compatible avec la couleur de texte.                                |
+| Erreur 404 sans identité visuelle                    | Page d'erreur avec thème mémorisé, message générique et retour à l'accueil.         |
+
+Les tests supplémentaires couvrent le contraste des titres et de la décision
+client, les dialogues aux largeurs 320/390/1440 pixels, le focus après fermeture,
+la page 404 et le chargement de la supervision sans double requête. Les erreurs
+d'hydratation et exceptions navigateur font échouer les tests d'apparence.
+Le bouton d'actualisation de la supervision conserve un appel API réel.
+
+Sur le profil compilé de démonstration, six rechargements de `/admin/system`
+(clair/sombre, largeurs 320, 390 et 1440 pixels) ont affiché les sept composants
+sans avertissement d'hydratation ni exception navigateur. L'actualisation
+manuelle met bien à jour l'instantané. Les dialogues ont été ouverts puis
+annulés et le panneau de décision a été contrôlé avec le compte client,
+sans approuver ni publier de contenu. À 320 pixels, la largeur défilante
+globale est bien de 320 pixels ; le tableau conserve son défilement interne.
+
+Ces corrections sont locales : aucun nouveau résultat de CI distante n'est
+encore revendiqué. Les vérifications couvrent Chromium et son émulation mobile,
+pas Safari/Firefox ni un appareil mobile physique.
+
+La couverture ci-dessus porte sur les composables, middlewares et utilitaires
+inclus par la configuration Vitest, pas sur tous les pixels ou tous les états
+possibles de l'interface. Les contrôles navigateur complètent cette couverture.
 
 ## Captures du build de démonstration
 
