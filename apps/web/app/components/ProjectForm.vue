@@ -69,81 +69,91 @@ function submit() {
       </ul>
     </div>
 
-    <div class="form-field">
-      <label for="project-name"
-        >Nom du projet <span aria-hidden="true">*</span></label
-      >
-      <input
-        id="project-name"
-        v-model="form.name"
-        name="name"
-        required
-        minlength="2"
-        maxlength="120"
-        :aria-invalid="Boolean(fieldErrors.name)"
-      />
-    </div>
-
-    <div class="form-field">
-      <label for="project-description">Description</label>
-      <textarea
-        id="project-description"
-        v-model="form.description"
-        name="description"
-        maxlength="5000"
-        rows="6"
-      />
-    </div>
-
-    <div class="form-field">
-      <label for="project-client"
-        >Client principal <span aria-hidden="true">*</span></label
-      >
-      <select
-        id="project-client"
-        v-model="form.clientUserId"
-        name="clientUserId"
-        required
-        :aria-invalid="Boolean(fieldErrors.clientUserId)"
-      >
-        <option value="" disabled>Sélectionner un client</option>
-        <option v-for="client in clients" :key="client.id" :value="client.id">
-          {{ client.displayName }} — {{ client.email }}
-        </option>
-      </select>
-    </div>
-
-    <fieldset v-if="additionalClients.length" class="project-members">
-      <legend>Membres clients supplémentaires</legend>
-      <label v-for="client in additionalClients" :key="client.id">
-        <input
-          v-model="form.memberUserIds"
-          type="checkbox"
-          :value="client.id"
+    <section class="form-section" aria-labelledby="project-information-title">
+      <h2 id="project-information-title">Informations du projet</h2>
+      <div class="form-field">
+        <label for="project-name"
+          >Nom du projet <span aria-hidden="true">*</span></label
+        >
+        <UInput
+          id="project-name"
+          v-model="form.name"
+          class="w-full"
+          size="lg"
+          name="name"
+          required
+          minlength="2"
+          maxlength="120"
+          :aria-invalid="Boolean(fieldErrors.name)"
         />
-        {{ client.displayName }}
-      </label>
-    </fieldset>
+      </div>
 
-    <div class="form-field">
-      <label for="project-timezone"
-        >Fuseau horaire <span aria-hidden="true">*</span></label
-      >
-      <input
-        id="project-timezone"
-        v-model="form.timezone"
-        name="timezone"
-        required
-        maxlength="80"
-        aria-describedby="timezone-hint"
-        :aria-invalid="Boolean(fieldErrors.timezone)"
-      />
-      <p id="timezone-hint" class="form-field__hint">
-        Format IANA, par exemple Europe/Paris.
-      </p>
-    </div>
+      <div class="form-field">
+        <label for="project-description">Description</label>
+        <UTextarea
+          id="project-description"
+          v-model="form.description"
+          class="w-full"
+          size="lg"
+          autoresize
+          name="description"
+          maxlength="5000"
+          :rows="4"
+        />
+      </div>
+    </section>
+    <section class="form-section" aria-labelledby="project-team-title">
+      <h2 id="project-team-title">Équipe et organisation</h2>
+      <div class="form-field">
+        <label for="project-client"
+          >Client principal <span aria-hidden="true">*</span></label
+        >
+        <select
+          id="project-client"
+          v-model="form.clientUserId"
+          name="clientUserId"
+          required
+          :aria-invalid="Boolean(fieldErrors.clientUserId)"
+        >
+          <option value="" disabled>Sélectionner un client</option>
+          <option v-for="client in clients" :key="client.id" :value="client.id">
+            {{ client.displayName }} — {{ client.email }}
+          </option>
+        </select>
+      </div>
 
-    <button
+      <fieldset v-if="additionalClients.length" class="project-members">
+        <legend>Membres clients supplémentaires</legend>
+        <label v-for="client in additionalClients" :key="client.id">
+          <input
+            v-model="form.memberUserIds"
+            type="checkbox"
+            :value="client.id"
+          />
+          {{ client.displayName }}
+        </label>
+      </fieldset>
+
+      <div class="form-field">
+        <label for="project-timezone"
+          >Fuseau horaire <span aria-hidden="true">*</span></label
+        >
+        <input
+          id="project-timezone"
+          v-model="form.timezone"
+          name="timezone"
+          required
+          maxlength="80"
+          aria-describedby="timezone-hint"
+          :aria-invalid="Boolean(fieldErrors.timezone)"
+        />
+        <p id="timezone-hint" class="form-field__hint">
+          Format IANA, par exemple Europe/Paris.
+        </p>
+      </div>
+    </section>
+    <UButton
+      icon="i-lucide-folder"
       class="button-primary"
       type="submit"
       :disabled="submitting || !clients.length"
@@ -155,6 +165,6 @@ function submit() {
             ? "Enregistrer"
             : "Créer le projet"
       }}
-    </button>
+    </UButton>
   </form>
 </template>

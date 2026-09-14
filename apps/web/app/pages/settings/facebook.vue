@@ -69,77 +69,87 @@ async function revoke(account: FacebookAccount) {
           <li aria-current="page">Facebook</li>
         </ol>
       </nav>
-      <div class="page-heading"><h1>Connexion Facebook</h1></div>
+      <NetworkConnectionHeading
+        name="Facebook"
+        icon="facebook"
+        :count="
+          accounts.filter((account) => account.status === 'connected').length
+        "
+      />
       <p class="status-message" role="status" aria-live="polite">
         {{ announcement }}
       </p>
       <p v-if="error" class="error-summary" role="alert">{{ error }}</p>
 
-      <section
-        class="publication-detail"
-        aria-labelledby="facebook-connect-title"
-      >
-        <h2 id="facebook-connect-title">Connecter une Page gérée</h2>
-        <p>
-          Renseignez l’identifiant exact de la Page. Un profil personnel ne peut
-          pas être sélectionné.
-        </p>
-        <form @submit.prevent="connect">
-          <label for="facebook-page-id">Identifiant de la Page Facebook</label>
-          <input
-            id="facebook-page-id"
-            v-model="pageId"
-            inputmode="numeric"
-            pattern="[0-9]{5,30}"
-            required
-            autocomplete="off"
-          />
-          <template v-if="user?.role === 'admin'">
-            <label for="facebook-agency-id">Identifiant de l’agence</label>
+      <div class="connection-workspace">
+        <section
+          class="publication-detail"
+          aria-labelledby="facebook-connect-title"
+        >
+          <h2 id="facebook-connect-title">Connecter une Page gérée</h2>
+          <p>
+            Renseignez l’identifiant exact de la Page. Un profil personnel ne
+            peut pas être sélectionné.
+          </p>
+          <form @submit.prevent="connect">
+            <label for="facebook-page-id"
+              >Identifiant de la Page Facebook</label
+            >
             <input
-              id="facebook-agency-id"
-              v-model="agencyId"
+              id="facebook-page-id"
+              v-model="pageId"
+              inputmode="numeric"
+              pattern="[0-9]{5,30}"
               required
               autocomplete="off"
             />
-          </template>
-          <button type="submit" :disabled="isLoading">
-            {{ isLoading ? "Redirection…" : "Continuer avec Facebook" }}
-          </button>
-        </form>
-      </section>
-
-      <section
-        class="publication-detail"
-        aria-labelledby="facebook-accounts-title"
-      >
-        <h2 id="facebook-accounts-title">Pages connectées</h2>
-        <p v-if="!accounts.length">Aucune Page connectée.</p>
-        <ul v-else class="facebook-account-list">
-          <li v-for="account in accounts" :key="account.id">
-            <h3>{{ account.externalAccountName }}</h3>
-            <p>
-              Page {{ account.externalAccountId }} — statut :
-              {{ account.status }}
-            </p>
-            <p>Permissions : {{ account.scopes.join(", ") || "Aucune" }}</p>
-            <p>
-              Expiration :
-              <time v-if="account.expiresAt" :datetime="account.expiresAt">{{
-                new Date(account.expiresAt).toLocaleString("fr-FR")
-              }}</time>
-              <span v-else>non fournie par Facebook</span>
-            </p>
-            <button
-              v-if="account.status === 'connected'"
-              type="button"
-              @click="revoke(account)"
-            >
-              Déconnecter cette Page
+            <template v-if="user?.role === 'admin'">
+              <label for="facebook-agency-id">Identifiant de l’agence</label>
+              <input
+                id="facebook-agency-id"
+                v-model="agencyId"
+                required
+                autocomplete="off"
+              />
+            </template>
+            <button type="submit" :disabled="isLoading">
+              {{ isLoading ? "Redirection…" : "Continuer avec Facebook" }}
             </button>
-          </li>
-        </ul>
-      </section>
+          </form>
+        </section>
+
+        <section
+          class="publication-detail"
+          aria-labelledby="facebook-accounts-title"
+        >
+          <h2 id="facebook-accounts-title">Pages connectées</h2>
+          <p v-if="!accounts.length">Aucune Page connectée.</p>
+          <ul v-else class="facebook-account-list">
+            <li v-for="account in accounts" :key="account.id">
+              <h3>{{ account.externalAccountName }}</h3>
+              <p>
+                Page {{ account.externalAccountId }} — statut :
+                {{ account.status }}
+              </p>
+              <p>Permissions : {{ account.scopes.join(", ") || "Aucune" }}</p>
+              <p>
+                Expiration :
+                <time v-if="account.expiresAt" :datetime="account.expiresAt">{{
+                  new Date(account.expiresAt).toLocaleString("fr-FR")
+                }}</time>
+                <span v-else>non fournie par Facebook</span>
+              </p>
+              <button
+                v-if="account.status === 'connected'"
+                type="button"
+                @click="revoke(account)"
+              >
+                Déconnecter cette Page
+              </button>
+            </li>
+          </ul>
+        </section>
+      </div>
     </main>
   </PrivateShell>
 </template>

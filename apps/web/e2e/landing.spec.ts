@@ -42,7 +42,7 @@ test.describe("public landing page", () => {
         ? "landing-mobile.png"
         : "landing-desktop.png";
     await page.screenshot({
-      path: `../../docs/evidence/task23/screenshots/${screenshotName}`,
+      path: testInfo.outputPath(screenshotName),
       fullPage: true,
     });
 

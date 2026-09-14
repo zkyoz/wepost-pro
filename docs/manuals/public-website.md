@@ -22,9 +22,10 @@ NUXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com
 
 La clé PostHog doit rester vide tant que le projet n’a pas validé la mesure
 d’audience. Une fois configurée, la bannière permet d’accepter ou refuser ; le
-module analytics n’est initialisé qu’après acceptation. Sans clé, la landing
-pré-rendue est servie sans JavaScript applicatif pour réduire son coût de
-chargement.
+module analytics n’est initialisé qu’après acceptation. Le HTML des pages
+publiques est rendu côté serveur à chaque requête pour respecter le thème
+clair ou sombre mémorisé dans le navigateur. Le JavaScript applicatif active
+notamment le bouton de thème ; les scripts restent soumis à la CSP.
 
 ## Avant mise en production
 

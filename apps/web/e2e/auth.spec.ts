@@ -6,6 +6,26 @@ async function waitForNuxt(page: Page) {
   await expect(page.locator("html")).toHaveAttribute("data-nuxt-ready", "true");
 }
 
+async function openNavigation(page: Page) {
+  const trigger = page.getByRole("button", {
+    name: "Navigation principale",
+    exact: true,
+  });
+  if (
+    (await trigger.isVisible()) &&
+    !(await page.getByRole("dialog").isVisible())
+  )
+    await trigger.click();
+}
+
+async function navigateSection(page: Page, name: string) {
+  await openNavigation(page);
+  const scope = (await page.getByRole("dialog").isVisible())
+    ? page.getByRole("dialog")
+    : page.locator(".app-sidebar");
+  await scope.getByRole("link", { name, exact: true }).click();
+}
+
 async function connectLinkedIn(page: Page) {
   // Existing accounts and the success URL can already be visible on a repeat
   // connection. Wait for a new main-frame navigation, not that stale state.
@@ -35,6 +55,13 @@ async function loginAs(page: Page, email: string) {
 
 async function logout(page: Page) {
   await waitForNuxt(page);
+  if (
+    !(await page.getByRole("button", { name: "Se déconnecter" }).isVisible())
+  ) {
+    await page
+      .getByRole("button", { name: "Navigation principale", exact: true })
+      .click();
+  }
   await page.getByRole("button", { name: "Se déconnecter" }).click();
   await expect(page).toHaveURL(/\/auth\/login$/);
 }
@@ -80,7 +107,7 @@ test.describe("session authentication", () => {
     await expect(page.getByRole("alert")).toBeHidden();
     await expect(page.getByText("Chargement du tableau de bord…")).toBeHidden();
     await expect(
-      page.getByText("Authentification opérationnelle"),
+      page.getByText("Votre espace de travail", { exact: true }),
     ).toBeVisible();
   });
 
@@ -110,7 +137,7 @@ test.describe("session authentication", () => {
     await waitForNuxt(page);
     await expect(page).toHaveURL(/\/dashboard$/);
     await expect(
-      page.getByText("Authentification opérationnelle"),
+      page.getByText("Votre espace de travail", { exact: true }),
     ).toBeVisible();
 
     await page.getByLabel("Langue de l’interface").selectOption("en");
@@ -141,7 +168,7 @@ test.describe("session authentication", () => {
         }
       });
       await page.screenshot({
-        path: "../../docs/evidence/task20/screenshots/interface-en-desktop.png",
+        path: testInfo.outputPath("interface-en-desktop.png"),
         fullPage: true,
       });
     }
@@ -157,7 +184,7 @@ test.describe("session authentication", () => {
     }));
     expect(JSON.stringify(storage)).not.toMatch(/token|bearer|jwt/i);
 
-    await page.getByRole("button", { name: "Se déconnecter" }).click();
+    await logout(page);
     await expect(page).toHaveURL(/\/auth\/login$/);
     await page.goto("/dashboard");
     await expect(page).toHaveURL(/\/auth\/login\?.*reason=session-expired/);
@@ -198,10 +225,11 @@ test.describe("session authentication", () => {
     page,
   }, testInfo) => {
     await loginAs(page, "admin.e2e@example.test");
+    await openNavigation(page);
     await expect(
       page.getByRole("link", { name: "Administration" }),
     ).toBeVisible();
-    await page.getByRole("link", { name: "Administration" }).click();
+    await navigateSection(page, "Administration");
     await expect(
       page.getByRole("heading", { name: "Administration globale" }),
     ).toBeVisible();
@@ -222,7 +250,7 @@ test.describe("session authentication", () => {
     ).toEqual([]);
     if (testInfo.project.name === "chromium") {
       await page.screenshot({
-        path: "../../docs/evidence/task21/screenshots/system-status-desktop.png",
+        path: testInfo.outputPath("system-status-desktop.png"),
         fullPage: true,
       });
     }
@@ -245,7 +273,7 @@ test.describe("session authentication", () => {
     ).toEqual([]);
     if (testInfo.project.name === "chromium") {
       await page.screenshot({
-        path: "../../docs/evidence/task22/screenshots/backups-desktop.png",
+        path: testInfo.outputPath("backups-desktop.png"),
         fullPage: true,
       });
     }
@@ -271,7 +299,7 @@ test.describe("session authentication", () => {
     page,
   }) => {
     await loginAs(page, "admin.e2e@example.test");
-    await page.getByRole("link", { name: "Administration" }).click();
+    await navigateSection(page, "Administration");
     await page.getByRole("link", { name: /^Utilisateurs/ }).click();
     const agencyRow = page.getByRole("row", { name: /Agence E2E/ });
     await agencyRow.getByRole("button", { name: "Désactiver" }).click();
@@ -308,7 +336,7 @@ test.describe("session authentication", () => {
     const publicationTitle = `Publication E2E ${attemptId}`;
     const updatedPublicationTitle = `${publicationTitle} modifiée`;
     await loginAs(page, "agency.e2e@example.test");
-    await page.getByRole("link", { name: "Projets", exact: true }).click();
+    await navigateSection(page, "Projets");
     await expect(page.getByRole("heading", { name: "Projets" })).toBeVisible();
     await page.getByRole("link", { name: "Créer un projet" }).click();
     await page.getByLabel("Nom du projet").fill(projectName);
@@ -346,6 +374,10 @@ test.describe("session authentication", () => {
 
     const publicationUrl = page.url();
     const publicationId = new URL(publicationUrl).pathname.split("/").pop()!;
+    await page
+      .locator(".publication-tools > details > summary")
+      .filter({ hasText: "Assistant de rédaction" })
+      .click();
     await page
       .getByLabel("Brief de génération")
       .fill(
@@ -390,7 +422,7 @@ test.describe("session authentication", () => {
         }
       });
       await page.locator(".ai-assistant").screenshot({
-        path: "../../docs/evidence/task16/screenshots/ai-text-assistant-desktop.png",
+        path: testInfo.outputPath("ai-text-assistant-desktop.png"),
       });
     }
     await page.getByRole("button", { name: "En cours" }).click();
@@ -431,7 +463,7 @@ test.describe("session authentication", () => {
     await logout(page);
 
     await loginAs(page, "agency.e2e@example.test");
-    await page.getByRole("link", { name: "Supervision" }).click();
+    await navigateSection(page, "Supervision");
     await expect(
       page.getByRole("heading", { name: "Supervision métier" }),
     ).toBeVisible();
@@ -467,7 +499,7 @@ test.describe("session authentication", () => {
         }
       });
       await page.screenshot({
-        path: "../../docs/evidence/task14/screenshots/supervision-dashboard-desktop.png",
+        path: testInfo.outputPath("supervision-dashboard-desktop.png"),
         fullPage: true,
       });
     }
@@ -512,7 +544,7 @@ test.describe("session authentication", () => {
     await expect(
       page.getByText("Approuvée", { exact: true }).first(),
     ).toBeVisible();
-    await page.getByRole("link", { name: "Notifications" }).click();
+    await navigateSection(page, "Notifications");
     await expect(
       page.getByRole("heading", { name: "Notifications" }),
     ).toBeVisible();
@@ -520,7 +552,7 @@ test.describe("session authentication", () => {
     await page.goto(publicationUrl);
     await waitForNuxt(page);
 
-    await page.getByRole("link", { name: "Calendrier" }).click();
+    await navigateSection(page, "Calendrier");
     await expect(
       page.getByRole("heading", { name: "Calendrier éditorial" }),
     ).toBeVisible();
@@ -545,6 +577,7 @@ test.describe("session authentication", () => {
       page.getByText(`${updatedPublicationTitle} a été déplacée.`),
     ).toBeAttached();
 
+    await page.locator(".calendar-export-disclosure > summary").click();
     const icsResponsePromise = page.waitForResponse((response) =>
       response.url().includes("/api/v1/calendar/export.ics"),
     );
@@ -587,7 +620,7 @@ test.describe("session authentication", () => {
     ).toEqual([]);
     if (testInfo.project.name === "chromium") {
       await page.locator(".calendar-export").screenshot({
-        path: "../../docs/evidence/task19/screenshots/calendar-export-desktop.png",
+        path: testInfo.outputPath("calendar-export-desktop.png"),
       });
     }
 
@@ -736,7 +769,7 @@ test.describe("session authentication", () => {
     ).toBeVisible();
     if (testInfo.project.name === "chromium") {
       await page.locator(".annotation-workspace").screenshot({
-        path: "../../docs/evidence/task18/screenshots/annotations-desktop.png",
+        path: testInfo.outputPath("annotations-desktop.png"),
       });
     }
     await page
@@ -756,6 +789,10 @@ test.describe("session authentication", () => {
     await page.goto(publicationUrl);
     await waitForNuxt(page);
 
+    await page
+      .locator(".publication-tools > details > summary")
+      .filter({ hasText: "Variantes par réseau" })
+      .click();
     await page.getByRole("tab", { name: "LinkedIn" }).click();
     await page.getByRole("button", { name: "Générer", exact: true }).click();
     await expect(page.getByText(/1 variante\(s\) générée\(s\)/)).toBeVisible();
@@ -796,11 +833,11 @@ test.describe("session authentication", () => {
     ).toEqual([]);
     if (testInfo.project.name === "chromium") {
       await page.locator(".network-variants").screenshot({
-        path: "../../docs/evidence/task17/screenshots/network-variants-desktop.png",
+        path: testInfo.outputPath("network-variants-desktop.png"),
       });
     }
 
-    await page.getByRole("link", { name: "Facebook", exact: true }).click();
+    await navigateSection(page, "Facebook");
     await expect(
       page.getByRole("heading", { name: "Connexion Facebook" }),
     ).toBeVisible();
@@ -830,7 +867,7 @@ test.describe("session authentication", () => {
     ).toBeVisible();
     await expect(page.getByText(/Statut : En attente/)).toBeVisible();
 
-    await page.getByRole("link", { name: "Instagram", exact: true }).click();
+    await navigateSection(page, "Instagram");
     await expect(
       page.getByRole("heading", { name: "Connexion Instagram" }),
     ).toBeVisible();
@@ -873,7 +910,7 @@ test.describe("session authentication", () => {
       page.getByText("La publication Instagram est programmée."),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "LinkedIn", exact: true }).click();
+    await navigateSection(page, "LinkedIn");
     await expect(
       page.getByRole("heading", { name: "Connexion LinkedIn" }),
     ).toBeVisible();
@@ -924,7 +961,7 @@ test.describe("session authentication", () => {
       page.getByText("La publication LinkedIn est programmée."),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Pinterest", exact: true }).click();
+    await navigateSection(page, "Pinterest");
     await expect(
       page.getByRole("heading", { name: "Connexion Pinterest" }),
     ).toBeVisible();
@@ -988,7 +1025,7 @@ test.describe("session authentication", () => {
       page.getByText("Le média campagne-e2e.mp4 a été ajouté."),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "TikTok", exact: true }).click();
+    await navigateSection(page, "TikTok");
     await expect(
       page.getByRole("heading", { name: "Connexion TikTok" }),
     ).toBeVisible();
@@ -1025,7 +1062,7 @@ test.describe("session authentication", () => {
       page.getByText("La publication TikTok est programmée."),
     ).toBeVisible();
 
-    await page.getByRole("link", { name: "Statistiques", exact: true }).click();
+    await navigateSection(page, "Statistiques");
     await expect(
       page.getByRole("heading", { name: "Statistiques agence" }),
     ).toBeVisible();
@@ -1072,7 +1109,7 @@ test.describe("session authentication", () => {
         }
       });
       await page.screenshot({
-        path: "../../docs/evidence/task15/screenshots/statistics-dashboard-desktop.png",
+        path: testInfo.outputPath("statistics-dashboard-desktop.png"),
         fullPage: true,
       });
     }
@@ -1090,7 +1127,7 @@ test.describe("session authentication", () => {
     await expect(page.getByRole("link", { name: "Utilisateurs" })).toHaveCount(
       0,
     );
-    await page.getByRole("link", { name: "Projets", exact: true }).click();
+    await navigateSection(page, "Projets");
     await page.getByRole("link", { name: projectName }).click();
     await expect(
       page.getByRole("heading", { name: projectName }),
@@ -1111,7 +1148,7 @@ test.describe("session authentication", () => {
       page.getByRole("button", { name: /Supprimer campagne-e2e/ }),
     ).toHaveCount(0);
 
-    await page.getByRole("link", { name: "Calendrier" }).click();
+    await navigateSection(page, "Calendrier");
     await expect(
       page.getByRole("heading", { name: "Exporter ou s’abonner" }),
     ).toHaveCount(0);

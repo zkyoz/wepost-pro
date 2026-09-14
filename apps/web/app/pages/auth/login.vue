@@ -130,9 +130,14 @@ async function submit() {
           autocomplete="current-password"
           :error="fieldErrors.password"
         />
-        <button class="button-primary" type="submit" :disabled="isLoading">
+        <UButton
+          class="button-primary"
+          type="submit"
+          :disabled="isLoading"
+          trailing-icon="i-lucide-arrow-right"
+        >
           {{ isLoading ? t("login.submitting") : t("login.submit") }}
-        </button>
+        </UButton>
       </form>
       <p class="auth-form__switch">
         {{ t("login.noAccount") }}

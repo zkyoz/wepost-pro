@@ -136,7 +136,7 @@ export default {
     accountStatus: "Account status",
     active: "Active",
     inactive: "Inactive",
-    sessionTitle: "Authentication operational",
+    sessionTitle: "Your workspace",
     sessionText:
       "The route is protected and your session was successfully restored from the server.",
   },

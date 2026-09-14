@@ -59,9 +59,17 @@ await loadProjects();
         <div>
           <p class="auth-form__eyebrow">Portefeuille client</p>
           <h1 id="projects-title" tabindex="-1">Projets</h1>
+          <p class="dashboard__lead">
+            Un espace partagé pour chaque client, du premier brouillon à la
+            publication.
+          </p>
         </div>
-        <NuxtLink v-if="canManage" class="button-link" to="/projects/new"
-          >Créer un projet</NuxtLink
+        <UButton
+          v-if="canManage"
+          class="button-primary"
+          icon="i-lucide-plus"
+          to="/projects/new"
+          >Créer un projet</UButton
         >
       </div>
 
@@ -109,9 +117,17 @@ await loadProjects();
       </section>
       <ul v-else class="project-grid">
         <li v-for="project in projects" :key="project.id" class="project-card">
-          <span class="status-badge" :class="`status-badge--${project.status}`">
-            {{ project.status === "active" ? "Actif" : "Archivé" }}
-          </span>
+          <div class="project-card__top">
+            <span class="project-card__avatar" aria-hidden="true">{{
+              project.name.slice(0, 1).toUpperCase()
+            }}</span
+            ><span
+              class="status-badge"
+              :class="`status-badge--${project.status}`"
+            >
+              {{ project.status === "active" ? "Actif" : "Archivé" }}
+            </span>
+          </div>
           <h2>
             <NuxtLink :to="`/projects/${project.id}`">{{
               project.name

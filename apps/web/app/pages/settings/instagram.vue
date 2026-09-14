@@ -75,98 +75,108 @@ async function revoke(account: InstagramAccount) {
           <li aria-current="page">Instagram</li>
         </ol>
       </nav>
-      <div class="page-heading"><h1>Connexion Instagram</h1></div>
+      <NetworkConnectionHeading
+        name="Instagram"
+        icon="instagram"
+        :count="
+          accounts.filter((account) => account.status === 'connected').length
+        "
+      />
       <p class="status-message" role="status" aria-live="polite">
         {{ announcement }}
       </p>
       <p v-if="error" class="error-summary" role="alert">{{ error }}</p>
 
-      <section
-        class="publication-detail"
-        aria-labelledby="instagram-connect-title"
-      >
-        <h2 id="instagram-connect-title">Connecter un compte professionnel</h2>
-        <p v-if="directLogin">
-          Connexion directe Instagram, sans Page Facebook. Le compte de test a
-          été autorisé dans Meta puis son token a été enregistré de manière
-          chiffrée dans la configuration locale de WePost.
-        </p>
-        <p v-else>
-          Renseignez l’identifiant exact du compte Instagram Business ou Creator
-          lié à une Page Facebook. Un profil personnel n’est pas pris en charge
-          par l’API de publication retenue.
-        </p>
-        <form v-if="!directLogin" @submit.prevent="connect">
-          <label for="instagram-account-id"
-            >Identifiant du compte Instagram</label
-          >
-          <input
-            id="instagram-account-id"
-            v-model="instagramAccountId"
-            inputmode="numeric"
-            pattern="[0-9]{5,30}"
-            required
-            autocomplete="off"
-          />
-          <template v-if="user?.role === 'admin'">
-            <label for="instagram-agency-id">Identifiant de l’agence</label>
+      <div class="connection-workspace">
+        <section
+          class="publication-detail"
+          aria-labelledby="instagram-connect-title"
+        >
+          <h2 id="instagram-connect-title">
+            Connecter un compte professionnel
+          </h2>
+          <p v-if="directLogin">
+            Connexion directe Instagram, sans Page Facebook. Le compte de test a
+            été autorisé dans Meta puis son token a été enregistré de manière
+            chiffrée dans la configuration locale de WePost.
+          </p>
+          <p v-else>
+            Renseignez l’identifiant exact du compte Instagram Business ou
+            Creator lié à une Page Facebook. Un profil personnel n’est pas pris
+            en charge par l’API de publication retenue.
+          </p>
+          <form v-if="!directLogin" @submit.prevent="connect">
+            <label for="instagram-account-id"
+              >Identifiant du compte Instagram</label
+            >
             <input
-              id="instagram-agency-id"
-              v-model="agencyId"
+              id="instagram-account-id"
+              v-model="instagramAccountId"
+              inputmode="numeric"
+              pattern="[0-9]{5,30}"
               required
               autocomplete="off"
             />
-          </template>
-          <button type="submit" :disabled="!isHydrated || isLoading">
-            {{ isLoading ? "Redirection…" : "Continuer avec Instagram" }}
-          </button>
-        </form>
-      </section>
-
-      <section
-        class="publication-detail"
-        aria-labelledby="instagram-accounts-title"
-      >
-        <h2 id="instagram-accounts-title">Comptes connectés</h2>
-        <p v-if="!accounts.length">Aucun compte connecté.</p>
-        <ul v-else class="instagram-account-list">
-          <li v-for="account in accounts" :key="account.id">
-            <h3>{{ account.externalAccountName }}</h3>
-            <p>
-              {{
-                account.mode === "live"
-                  ? "Publication réelle via l’API officielle"
-                  : "Compte de démonstration simulé"
-              }}
-            </p>
-            <p>
-              Compte {{ account.externalAccountId }} — statut :
-              {{ account.status }}
-            </p>
-            <p>
-              Permissions :
-              {{
-                account.scopes.join(", ") ||
-                "inventaire non fourni par Instagram"
-              }}
-            </p>
-            <p>
-              Expiration :
-              <time v-if="account.expiresAt" :datetime="account.expiresAt">{{
-                new Date(account.expiresAt).toLocaleString("fr-FR")
-              }}</time>
-              <span v-else>non fournie par Instagram</span>
-            </p>
-            <button
-              v-if="account.status === 'connected'"
-              type="button"
-              @click="revoke(account)"
-            >
-              Déconnecter ce compte
+            <template v-if="user?.role === 'admin'">
+              <label for="instagram-agency-id">Identifiant de l’agence</label>
+              <input
+                id="instagram-agency-id"
+                v-model="agencyId"
+                required
+                autocomplete="off"
+              />
+            </template>
+            <button type="submit" :disabled="!isHydrated || isLoading">
+              {{ isLoading ? "Redirection…" : "Continuer avec Instagram" }}
             </button>
-          </li>
-        </ul>
-      </section>
+          </form>
+        </section>
+
+        <section
+          class="publication-detail"
+          aria-labelledby="instagram-accounts-title"
+        >
+          <h2 id="instagram-accounts-title">Comptes connectés</h2>
+          <p v-if="!accounts.length">Aucun compte connecté.</p>
+          <ul v-else class="instagram-account-list">
+            <li v-for="account in accounts" :key="account.id">
+              <h3>{{ account.externalAccountName }}</h3>
+              <p>
+                {{
+                  account.mode === "live"
+                    ? "Publication réelle via l’API officielle"
+                    : "Compte de démonstration simulé"
+                }}
+              </p>
+              <p>
+                Compte {{ account.externalAccountId }} — statut :
+                {{ account.status }}
+              </p>
+              <p>
+                Permissions :
+                {{
+                  account.scopes.join(", ") ||
+                  "inventaire non fourni par Instagram"
+                }}
+              </p>
+              <p>
+                Expiration :
+                <time v-if="account.expiresAt" :datetime="account.expiresAt">{{
+                  new Date(account.expiresAt).toLocaleString("fr-FR")
+                }}</time>
+                <span v-else>non fournie par Instagram</span>
+              </p>
+              <button
+                v-if="account.status === 'connected'"
+                type="button"
+                @click="revoke(account)"
+              >
+                Déconnecter ce compte
+              </button>
+            </li>
+          </ul>
+        </section>
+      </div>
     </main>
   </PrivateShell>
 </template>

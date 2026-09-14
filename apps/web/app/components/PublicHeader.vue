@@ -10,9 +10,12 @@
           <li><NuxtLink to="/#faq">FAQ</NuxtLink></li>
         </ul>
       </nav>
-      <NuxtLink class="public-button public-button--compact" to="/auth/login">
-        Se connecter
-      </NuxtLink>
+      <div class="public-header__actions">
+        <ThemeToggle />
+        <NuxtLink class="public-button public-button--compact" to="/auth/login">
+          Se connecter
+        </NuxtLink>
+      </div>
     </div>
   </header>
 </template>

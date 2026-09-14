@@ -277,7 +277,9 @@ onMounted(() => {
                 {{ eventDate(event.scheduledAt) }}
               </time>
               <div>
-                <strong>{{ event.title }}</strong>
+                <NuxtLink :to="`/publications/${event.id}`">{{
+                  event.title
+                }}</NuxtLink>
                 <span>{{ event.projectName }}</span>
               </div>
               <span

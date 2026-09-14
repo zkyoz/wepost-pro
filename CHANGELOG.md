@@ -42,6 +42,16 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Changed
 
+- Refondu l'interface avec Nuxt UI 4 : navigation latérale, tableau de bord,
+  projets, publications, calendrier, formulaires, connexions sociales et écrans
+  d'administration. Palette orange/anthracite/noir/vert sauge, thèmes clair et
+  sombre mémorisés, navigation mobile en panneau et ressources visuelles locales.
+- Réorganisé la fiche publication en sections accessibles et regroupé les outils
+  avancés dans des panneaux dépliables, sans modifier les règles de validation
+  ni les intégrations sociales.
+- Ajouté des tests de persistance du thème, de contraste et de reflow sur
+  ordinateur et mobile.
+
 - Documenté les seuils de supervision, la répétition des alertes et l'exercice local Uptime Kuma de C4.1.2.
 - Structuré la collecte des anomalies avec un template GitHub complet, des
   statuts, des niveaux de criticité, des priorités et la fiche réelle

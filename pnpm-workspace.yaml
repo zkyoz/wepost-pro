@@ -22,3 +22,4 @@ allowBuilds:
   fsevents: true
   msgpackr-extract: true
   unrs-resolver: true
+  vue-demi: true

@@ -139,7 +139,7 @@ export default {
     accountStatus: "Statut du compte",
     active: "Actif",
     inactive: "Inactif",
-    sessionTitle: "Authentification opérationnelle",
+    sessionTitle: "Votre espace de travail",
     sessionText:
       "La route est protégée et votre session a bien été restaurée depuis le serveur.",
   },

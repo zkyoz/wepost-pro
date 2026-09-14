@@ -5,7 +5,7 @@ const { t } = useLocale();
 
 <template>
   <div class="auth-shell">
-    <div class="auth-shell__locale"><LocaleSwitcher /></div>
+    <div class="auth-shell__locale"><ThemeToggle /><LocaleSwitcher /></div>
     <aside class="auth-shell__story" :aria-label="t('authShell.label')">
       <AppBrand />
       <div class="auth-shell__story-copy">
