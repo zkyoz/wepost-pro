@@ -1,0 +1,9 @@
+[
+  {
+    "AllowedOrigins": ["http://127.0.0.1:3000"],
+    "AllowedMethods": ["GET", "PUT", "HEAD"],
+    "AllowedHeaders": ["Content-Type"],
+    "ExposeHeaders": ["ETag"],
+    "MaxAgeSeconds": 3600
+  }
+]

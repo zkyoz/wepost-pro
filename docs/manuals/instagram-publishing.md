@@ -2,6 +2,39 @@
 
 ## Configuration
 
+### Démonstration locale sans Page Facebook
+
+Le worker prend aussi en charge **Instagram Login** : `INSTAGRAM_LOGIN_MODE=instagram`,
+API `graph.instagram.com`, token utilisateur autorisé pour le compte professionnel.
+Le bouton de connexion Facebook Login n’est pas utilisé dans ce mode.
+
+1. Conserver le token et le nom attendu du compte dans `.demo/instagram.env`
+   (`INSTAGRAM_ACCESS_TOKEN` et `INSTAGRAM_USERNAME`, fichier privé 0600, jamais Git).
+2. Après compilation de l’API : `pnpm demo:instagram:connect`. La commande vérifie
+   l’identité et l’accès au quota, puis chiffre le token pour l’agence locale.
+3. Placer le seul JPEG autorisé dans `.demo/instagram-test.jpg`, puis lancer
+   `pnpm demo:instagram:image`. Le serveur écoute sur `127.0.0.1:4445` et expire
+   après 30 minutes. Le chemin opaque et le SHA256 sont dans `.demo/image-bridge.json`.
+4. Lancer `cloudflared tunnel --url http://127.0.0.1:4445 --no-autoupdate`.
+   Ne jamais cibler le frontend, l’API ou un répertoire de fichiers.
+5. Dans `.demo/instagram-public.env`, renseigner `INSTAGRAM_DEMO_IMAGE_URL`
+   (origine HTTPS affichée par le tunnel + chemin opaque) et
+   `INSTAGRAM_DEMO_IMAGE_SHA256` (empreinte du manifeste).
+6. Lancer `pnpm demo:social:start`, qui conserve LinkedIn réel. Créer le post dans
+   WePost, téléverser ce même JPEG, obtenir l’approbation, valider puis programmer.
+7. Actualiser le statut et vérifier le post sur Instagram. Arrêter le serveur
+   d’image et le tunnel. Recréer le lien pour un nouveau test ; ne pas réutiliser
+   un lien expiré et ne pas réexécuter une publication déjà réussie.
+
+Ce pont est réservé au test local, sans garantie de disponibilité. La vidéo et
+la production n’ont pas été validées par ce scénario. Les scopes et l’expiration
+absents de la réponse Meta sont indiqués comme non fournis, pas inventés.
+
+Références : [publication Instagram officielle](https://developers.facebook.com/documentation/instagram-platform/content-publishing),
+[Quick Tunnels Cloudflare](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/do-more-with-tunnels/trycloudflare/).
+
+### Facebook Login / infrastructure durable
+
 Créer/configurer l’application Meta retenue pour **Instagram API with Facebook Login** et déclarer exactement le callback de chaque environnement. Le compte Instagram doit être professionnel (Business ou Creator), lié à une Page Facebook gérée par l’utilisateur OAuth.
 
 ```text

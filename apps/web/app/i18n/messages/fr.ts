@@ -130,13 +130,16 @@ export default {
     loading: "Chargement du tableau de bord…",
     unavailable:
       "Les informations du tableau de bord sont momentanément indisponibles.",
+    partiallyUnavailable:
+      "Certaines informations du tableau de bord sont momentanément indisponibles.",
+    retry: "Réessayer",
     profile: "Profil connecté",
     displayName: "Nom affiché",
     email: "Adresse e-mail",
     accountStatus: "Statut du compte",
     active: "Actif",
     inactive: "Inactif",
-    sessionTitle: "Authentification opérationnelle",
+    sessionTitle: "Votre espace de travail",
     sessionText:
       "La route est protégée et votre session a bien été restaurée depuis le serveur.",
   },

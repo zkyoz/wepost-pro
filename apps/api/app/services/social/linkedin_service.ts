@@ -1,9 +1,11 @@
 import { validateLinkedInPublication } from '#domain/social/linkedin'
+import linkedinConfig from '#config/linkedin'
 import PublicationAttempt from '#models/publication_attempt'
 import type Publication from '#models/publication'
 import type ScheduledPublication from '#models/scheduled_publication'
 import type SocialAccount from '#models/social_account'
 import db from '@adonisjs/lucid/services/db'
+import { statusForRemainingNetwork } from '#services/social/social_status_service'
 
 export function toSocialAccountView(account: SocialAccount) {
   return {
@@ -16,6 +18,12 @@ export function toSocialAccountView(account: SocialAccount) {
     scopes: account.scopes,
     status: account.status,
     canRefresh: Boolean(account.encryptedRefreshToken),
+    connectionMode:
+      account.metadataJson.driver === 'linkedin'
+        ? 'live'
+        : account.metadataJson.driver === 'mock'
+          ? 'mock'
+          : 'unknown',
     createdAt: account.createdAt.toUTC().toISO()!,
     updatedAt: account.updatedAt.toUTC().toISO()!,
     revokedAt: account.revokedAt?.toUTC().toISO() ?? null,
@@ -81,8 +89,8 @@ export async function validatePublicationForLinkedIn(
   account: SocialAccount,
   effectiveText: string = publication.baseText
 ) {
-  return validateLinkedInPublication({
-    status: publication.status,
+  const result = validateLinkedInPublication({
+    status: await statusForRemainingNetwork(publication, 'linkedin'),
     contentVersion: publication.contentVersion,
     approvedVersion: publication.approvedVersion,
     targetNetworks: publication.targetNetworks,
@@ -91,4 +99,12 @@ export async function validatePublicationForLinkedIn(
     accountExpiresAt: account.expiresAt?.toMillis() ?? null,
     media: await linkedinMediaForPublication(publication.id),
   })
+  if (
+    (linkedinConfig.driver === 'linkedin' && account.metadataJson.driver !== 'linkedin') ||
+    (linkedinConfig.driver === 'mock' && account.metadataJson.driver === 'linkedin')
+  ) {
+    result.errors.push('Reconnectez ce compte dans le mode LinkedIn actuel avant de publier.')
+    result.valid = false
+  }
+  return result
 }

@@ -13,7 +13,11 @@ export function useLinkedInApi(api: typeof $fetch = useNuxtApp().$api) {
   }
   return {
     accounts: () => api<Data<LinkedInAccount[]>>("/social/linkedin/accounts"),
-    startOAuth: (input: { organizationId: string; agencyId?: string }) =>
+    startOAuth: (input: {
+      targetType?: "member" | "organization";
+      organizationId?: string;
+      agencyId?: string;
+    }) =>
       mutation<Data<{ authorizationUrl: string }>>(
         "/social/linkedin/oauth/start",
         { method: "POST", body: input },

@@ -127,13 +127,16 @@ export default {
     noActiveProjectClient: "Your projects will appear here once assigned.",
     loading: "Loading dashboard…",
     unavailable: "Dashboard information is temporarily unavailable.",
+    partiallyUnavailable:
+      "Some dashboard information is temporarily unavailable.",
+    retry: "Try again",
     profile: "Signed-in profile",
     displayName: "Display name",
     email: "Email address",
     accountStatus: "Account status",
     active: "Active",
     inactive: "Inactive",
-    sessionTitle: "Authentication operational",
+    sessionTitle: "Your workspace",
     sessionText:
       "The route is protected and your session was successfully restored from the server.",
   },

@@ -26,3 +26,30 @@ Version testée : arbre local du 22/07/2026. Environnement : macOS, PostgreSQL, 
 | IG-20 | Alerte 24 h               | monitoring production             | alerte si échecs > 5 %                    | à configurer              | À faire |
 
 Captures à joindre : connexion sans token, compte/scopes, validation, statut, tentatives, compte Meta de test, run CI et recette clavier/VoiceOver.
+
+## Complément : Instagram Login réel en local
+
+IG-18 est désormais validé pour **une image JPEG réelle**, pas pour la vidéo ni
+la préproduction. Préparation, validation et programmation ont été réalisées
+dans l’interface. Le worker a publié une fois ; le post a été vérifié dans
+Instagram. Voir [la preuve et les identifiants](../evidence/task09.md).
+
+Les nouveaux tests couvrent le domaine `graph.instagram.com`, la séparation
+réel/simulé, les modes de connexion incompatibles et l’accès limité par empreinte
+au seul JPEG autorisé. Les tests automatiques continuent à simuler Meta.
+
+La même recette image a ensuite été répétée avec un nouveau JPEG téléversé vers
+R2 privé, sans pont HTTPS : une tentative réussie, identifiant et image vérifiés
+sur Instagram. Voir le [complément R2](../evidence/r2-demo/verification.md).
+
+## Correctif multiréseau — 14 septembre 2026
+
+La [fiche du correctif](../bugs/multinetwork-partial-publication.md) décrit la
+reprise d'un réseau restant après le succès de l'autre, les protections serveur,
+les résultats des tests et les limites de validation. Les deux ordres
+Instagram/LinkedIn sont couverts par les tests sans appels externes.
+
+La [recette réelle multiréseau](../recette/multinetwork-live.md) a ensuite
+confirmé la reprise de la première fiche et une nouvelle publication complète
+sur les deux comptes autorisés, une seule tentative par cible. Aucun jeton,
+URL signée, migration ou modification des droits n'a été nécessaire.

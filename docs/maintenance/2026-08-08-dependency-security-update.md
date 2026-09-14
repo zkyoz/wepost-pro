@@ -93,3 +93,23 @@ utilisé.
 Le correctif est validé localement. Son intégration reste soumise à la Pull
 Request vers `develop`, à la CI GitHub et à la revue humaine prévues par le
 processus de maintenance.
+
+## Suivi du 14 août 2026 - `nanoid 3.3.18`
+
+L'audit du run GitHub Actions
+[`31756040891`](https://github.com/zkyoz/wepost-pro/actions/runs/31756040891)
+a détecté le nouvel avis élevé `GHSA-2v37-7h3g-55p8`, qui affecte désormais
+`nanoid < 3.3.18`. L'override précédent en `3.3.17`, correct au 8 août, ne
+suffisait donc plus.
+
+La plage a été portée à `nanoid < 3.3.18` avec résolution `3.3.18`. Le diff du
+lockfile reste limité aux références et à l'intégrité de cette dépendance. Les
+contrôles locaux suivants réussissent :
+
+- installation avec lockfile figé ;
+- audit sans vulnérabilité connue ;
+- 104/104 tests frontend ;
+- build Nuxt réussi.
+
+Cette mise à jour est distincte du correctif fonctionnel `SUP-001` : elle traite
+le contrôle de sécurité qui bloquait sa CI.

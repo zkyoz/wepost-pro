@@ -15,11 +15,15 @@ function query(input: Record<string, unknown>) {
 
 export function useSupervisionApi(api: typeof $fetch = useNuxtApp().$api) {
   return {
-    summary: (filters: SupervisionFilters = {}) =>
+    summary: (
+      filters: SupervisionFilters = {},
+      options: { signal?: AbortSignal } = {},
+    ) =>
       api<{ data: SupervisionSummary; meta: { durationMs: number } }>(
         "/supervision/summary",
         {
           query: query(filters),
+          ...(options.signal ? { signal: options.signal } : {}),
         },
       ),
     items: (

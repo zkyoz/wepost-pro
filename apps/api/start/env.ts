@@ -58,6 +58,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   FACEBOOK_OAUTH_REDIRECT_URI: Env.schema.string.optional(),
   FACEBOOK_OAUTH_SUCCESS_URL: Env.schema.string.optional(),
   INSTAGRAM_API_DRIVER: Env.schema.enum.optional(['mock', 'instagram'] as const),
+  INSTAGRAM_LOGIN_MODE: Env.schema.enum.optional(['facebook', 'instagram'] as const),
   INSTAGRAM_APP_ID: Env.schema.string.optional(),
   INSTAGRAM_APP_SECRET: Env.schema.string.optional(),
   INSTAGRAM_GRAPH_API_VERSION: Env.schema.string.optional(),
@@ -98,6 +99,7 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // Private media storage
   MEDIA_STORAGE_DRIVER: Env.schema.enum.optional(['local', 'r2'] as const),
+  MEDIA_LOCAL_DIRECTORY: Env.schema.string.optional(),
   MEDIA_MAX_BYTES: Env.schema.number.optional(),
   MEDIA_SIGNED_URL_TTL_SECONDS: Env.schema.number.optional(),
   MEDIA_ABANDONED_UPLOAD_MINUTES: Env.schema.number.optional(),

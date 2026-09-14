@@ -6,6 +6,7 @@ import type {
   LinkedInValidation,
 } from "~/types/linkedin";
 import { getApiErrors } from "~/utils/api-errors";
+import { toLocalDateTimeInput } from "~/utils/calendar";
 
 const props = defineProps<{
   publicationId: string;
@@ -13,7 +14,7 @@ const props = defineProps<{
   status: string;
   scheduledAt: string | null;
 }>();
-const emit = defineEmits<{ scheduled: [] }>();
+const emit = defineEmits<{ scheduled: []; refreshed: [] }>();
 const api = useLinkedInApi();
 const canManage = computed(
   () => props.role === "admin" || props.role === "agency",
@@ -21,9 +22,10 @@ const canManage = computed(
 const accounts = ref<LinkedInAccount[]>([]);
 const accountId = ref("");
 const runAt = ref(
-  props.scheduledAt
-    ? new Date(props.scheduledAt).toISOString().slice(0, 16)
-    : "",
+  toLocalDateTimeInput(
+    props.scheduledAt,
+    Intl.DateTimeFormat().resolvedOptions().timeZone,
+  ),
 );
 const schedule = ref<LinkedInSchedule | null>(null);
 const validation = ref<LinkedInValidation | null>(null);
@@ -92,6 +94,16 @@ async function validate() {
 
 async function program() {
   if (!accountId.value) return;
+  const selected = accounts.value.find(
+    (account) => account.id === accountId.value,
+  );
+  if (
+    selected?.connectionMode === "live" &&
+    !window.confirm(
+      `Publier réellement sur LinkedIn avec « ${selected.externalAccountName} » à la date choisie ? Le contenu approuvé sera visible publiquement.`,
+    )
+  )
+    return;
   error.value = "";
   isLoading.value = true;
   try {
@@ -124,6 +136,29 @@ async function retry() {
   }
 }
 
+async function refreshStatus() {
+  error.value = "";
+  isLoading.value = true;
+  try {
+    await load();
+    emit("refreshed");
+    announcement.value = "Le statut LinkedIn est à jour.";
+  } catch (cause) {
+    error.value = errorText(cause);
+  } finally {
+    isLoading.value = false;
+  }
+}
+
+const publishedUrl = computed(() => {
+  const remoteId = schedule.value?.attempts.find(
+    (attempt) => attempt.result === "success",
+  )?.remotePostId;
+  return remoteId && /^urn:li:(share|ugcPost):\d+$/.test(remoteId)
+    ? `https://www.linkedin.com/feed/update/${remoteId}/`
+    : null;
+});
+
 await load();
 </script>
 
@@ -147,6 +182,19 @@ await load();
       >.
     </p>
     <p v-else>Aucune programmation LinkedIn.</p>
+    <button
+      v-if="schedule"
+      type="button"
+      :disabled="!isHydrated || isLoading"
+      @click="refreshStatus"
+    >
+      Actualiser le statut LinkedIn
+    </button>
+    <p v-if="publishedUrl">
+      <a :href="publishedUrl" target="_blank" rel="noopener noreferrer"
+        >Voir la publication sur LinkedIn (nouvel onglet)</a
+      >
+    </p>
 
     <div v-if="canManage && !schedule" class="linkedin-controls">
       <p v-if="!accounts.length">
@@ -155,14 +203,19 @@ await load();
         >.
       </p>
       <template v-else>
-        <label for="linkedin-account">Organisation LinkedIn</label>
+        <label for="linkedin-account">Profil ou Page LinkedIn</label>
         <select id="linkedin-account" v-model="accountId">
           <option
             v-for="account in accounts"
             :key="account.id"
             :value="account.id"
           >
-            {{ account.externalAccountName }} — {{ account.externalAccountId }}
+            {{ account.externalAccountName }} —
+            {{
+              account.externalAccountId.startsWith("urn:li:person:")
+                ? "Profil personnel"
+                : "Page entreprise"
+            }}{{ account.connectionMode === "mock" ? " (simulation)" : "" }}
           </option>
         </select>
         <label for="linkedin-run-at">Date et heure de publication</label>
@@ -180,7 +233,8 @@ await load();
             :disabled="
               !isHydrated ||
               isLoading ||
-              !['approved', 'scheduled'].includes(status)
+              (!['approved', 'scheduled'].includes(status) &&
+                !(status === 'published' && validation?.valid))
             "
             @click="program"
           >

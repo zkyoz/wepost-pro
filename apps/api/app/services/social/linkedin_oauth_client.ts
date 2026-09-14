@@ -1,4 +1,4 @@
-import linkedinConfig from '#config/linkedin'
+import linkedinConfig, { linkedinScopes, type LinkedInTargetType } from '#config/linkedin'
 
 export type ManagedLinkedInOrganization = {
   id: string
@@ -15,10 +15,11 @@ export type LinkedInToken = {
 }
 
 export interface LinkedInOAuthClient {
-  authorizationUrl(state: string): string
-  exchangeCode(code: string): Promise<LinkedInToken>
-  refreshToken(refreshToken: string): Promise<LinkedInToken>
+  authorizationUrl(state: string, targetType?: LinkedInTargetType): string
+  exchangeCode(code: string, targetType?: LinkedInTargetType): Promise<LinkedInToken>
+  refreshToken(refreshToken: string, targetType?: LinkedInTargetType): Promise<LinkedInToken>
   managedOrganizations(token: string): Promise<ManagedLinkedInOrganization[]>
+  memberProfile(token: string): Promise<{ id: string; name: string; role: string }>
 }
 
 type LinkedInErrorBody = {
@@ -46,7 +47,7 @@ async function readJson<T>(response: Response): Promise<T> {
   return body
 }
 
-class OfficialLinkedInOAuthClient implements LinkedInOAuthClient {
+export class OfficialLinkedInOAuthClient implements LinkedInOAuthClient {
   private assertConfig() {
     if (
       !linkedinConfig.appId ||
@@ -68,19 +69,19 @@ class OfficialLinkedInOAuthClient implements LinkedInOAuthClient {
     }
   }
 
-  authorizationUrl(state: string) {
+  authorizationUrl(state: string, targetType: LinkedInTargetType = 'organization') {
     this.assertConfig()
     const query = new URLSearchParams({
       response_type: 'code',
       client_id: linkedinConfig.appId,
       redirect_uri: linkedinConfig.redirectUri,
       state,
-      scope: linkedinConfig.scopes.join(' '),
+      scope: linkedinScopes(targetType).join(' '),
     })
     return `https://www.linkedin.com/oauth/v2/authorization?${query}`
   }
 
-  async exchangeCode(code: string) {
+  async exchangeCode(code: string, targetType: LinkedInTargetType = 'organization') {
     this.assertConfig()
     const body = new URLSearchParams({
       grant_type: 'authorization_code',
@@ -108,11 +109,11 @@ class OfficialLinkedInOAuthClient implements LinkedInOAuthClient {
       expiresIn: result.expires_in ?? null,
       refreshToken: result.refresh_token ?? null,
       refreshTokenExpiresIn: result.refresh_token_expires_in ?? null,
-      scopes: result.scope?.split(/\s+/).filter(Boolean) ?? [...linkedinConfig.scopes],
+      scopes: result.scope?.split(/[\s,]+/).filter(Boolean) ?? [...linkedinScopes(targetType)],
     }
   }
 
-  async refreshToken(refreshToken: string) {
+  async refreshToken(refreshToken: string, targetType: LinkedInTargetType = 'organization') {
     this.assertConfig()
     const body = new URLSearchParams({
       grant_type: 'refresh_token',
@@ -139,7 +140,25 @@ class OfficialLinkedInOAuthClient implements LinkedInOAuthClient {
       expiresIn: result.expires_in ?? null,
       refreshToken: result.refresh_token ?? null,
       refreshTokenExpiresIn: result.refresh_token_expires_in ?? null,
-      scopes: result.scope?.split(/\s+/).filter(Boolean) ?? [...linkedinConfig.scopes],
+      scopes: result.scope?.split(/[\s,]+/).filter(Boolean) ?? [...linkedinScopes(targetType)],
+    }
+  }
+
+  async memberProfile(token: string) {
+    this.assertConfig()
+    const result = await readJson<{ sub?: string; name?: string }>(
+      await fetch('https://api.linkedin.com/v2/userinfo', {
+        headers: { authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(20_000),
+      })
+    )
+    if (typeof result.sub !== 'string' || !/^[A-Za-z0-9_-]{1,128}$/.test(result.sub)) {
+      throw new LinkedInOAuthError('invalid_member_identity')
+    }
+    return {
+      id: `urn:li:person:${result.sub}`,
+      name: typeof result.name === 'string' ? result.name.slice(0, 255) : 'Profil LinkedIn',
+      role: 'MEMBER',
     }
   }
 
@@ -172,26 +191,29 @@ class MockLinkedInOAuthClient implements LinkedInOAuthClient {
     const query = new URLSearchParams({ code: 'mock-linkedin-code', state })
     return `${linkedinConfig.redirectUri}?${query}`
   }
-  async exchangeCode() {
+  async exchangeCode(_code: string, targetType: LinkedInTargetType = 'organization') {
     return {
       accessToken: 'mock-linkedin-access-token',
       expiresIn: 5_184_000,
       refreshToken: 'mock-linkedin-refresh-token',
       refreshTokenExpiresIn: 31_536_000,
-      scopes: [...linkedinConfig.scopes],
+      scopes: [...linkedinScopes(targetType)],
     }
   }
-  async refreshToken() {
+  async refreshToken(_token: string, targetType: LinkedInTargetType = 'organization') {
     return {
       accessToken: 'mock-linkedin-refreshed-access-token',
       expiresIn: 5_184_000,
       refreshToken: 'mock-linkedin-refreshed-refresh-token',
       refreshTokenExpiresIn: 31_536_000,
-      scopes: [...linkedinConfig.scopes],
+      scopes: [...linkedinScopes(targetType)],
     }
   }
   async managedOrganizations() {
     return [{ id: '123456789', name: 'Wepost Test', role: 'ADMINISTRATOR' }]
+  }
+  async memberProfile() {
+    return { id: 'urn:li:person:mock-member', name: 'Profil LinkedIn de test', role: 'MEMBER' }
   }
 }
 

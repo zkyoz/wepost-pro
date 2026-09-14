@@ -38,4 +38,9 @@ La tâche ajoute un stockage média privé avec adaptateurs local et Cloudflare 
 
 ## Preuves externes restantes
 
+Le [complément R2 BC03](r2-demo/verification.md) prouve maintenant l'upload signé
+réel depuis le navigateur, la consultation par le client, l'expiration des liens
+et la conservation des quatre médias historiques. Il ne remplace pas la recette
+de préproduction ni les contrôles RGAA manuels.
+
 Ajouter après promotion : SHA, run CI rouge/vert, configuration CORS du bucket sans secret, captures UI, attributs de la requête signée sans sa valeur et procès-verbal RGAA manuel.

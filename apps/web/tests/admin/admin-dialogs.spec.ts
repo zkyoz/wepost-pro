@@ -14,6 +14,9 @@ describe("administration dialogs", () => {
       },
     });
     expect(wrapper.get("h2").text()).toBe("Désactiver le compte ?");
+    expect(wrapper.get("dialog").attributes("aria-labelledby")).toBe(
+      wrapper.get("h2").attributes("id"),
+    );
     expect(wrapper.get("button.button-danger").text()).toBe("Désactiver");
     expect(wrapper.text()).toContain("Annuler");
   });
@@ -31,5 +34,8 @@ describe("administration dialogs", () => {
     ]);
     expect(wrapper.html()).not.toContain("<script>alert(1)</script>");
     expect(wrapper.text()).toContain("<script>alert(1)</script>");
+    expect(wrapper.get("dialog").attributes("aria-labelledby")).toBe(
+      wrapper.get("h2").attributes("id"),
+    );
   });
 });

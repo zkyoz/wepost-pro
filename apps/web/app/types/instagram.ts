@@ -7,6 +7,8 @@ export type InstagramAccount = {
   expiresAt: string | null;
   scopes: string[];
   status: "connected" | "expired" | "revoked" | "error";
+  mode?: "live" | "mock";
+  loginMode?: "facebook" | "instagram";
   createdAt: string;
   updatedAt: string;
   revokedAt: string | null;

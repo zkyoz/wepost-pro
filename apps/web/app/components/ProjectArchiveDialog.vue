@@ -2,6 +2,7 @@
 const props = defineProps<{ projectName: string }>();
 const emit = defineEmits<{ confirm: [] }>();
 const dialog = ref<HTMLDialogElement>();
+const titleId = useId();
 const cancelButton = ref<HTMLButtonElement>();
 let trigger: HTMLElement | null = null;
 
@@ -29,8 +30,13 @@ defineExpose({ open });
 </script>
 
 <template>
-  <dialog ref="dialog" class="confirm-dialog" @close="restoreFocus">
-    <h2>Archiver « {{ props.projectName }} » ?</h2>
+  <dialog
+    ref="dialog"
+    class="confirm-dialog"
+    :aria-labelledby="titleId"
+    @close="restoreFocus"
+  >
+    <h2 :id="titleId">Archiver « {{ props.projectName }} » ?</h2>
     <p>
       Le projet restera consultable mais n’acceptera plus de nouvelles
       publications.

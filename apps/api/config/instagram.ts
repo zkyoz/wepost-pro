@@ -19,6 +19,7 @@ export const INSTAGRAM_SCOPES = [
 
 export default {
   driver,
+  loginMode: env.get('INSTAGRAM_LOGIN_MODE') ?? 'facebook',
   appId,
   appSecret,
   graphApiVersion,

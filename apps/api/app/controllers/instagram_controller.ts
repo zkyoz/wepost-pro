@@ -66,6 +66,16 @@ async function accountForPublication(accountId: string, agencyId: string) {
 
 export default class InstagramController {
   async oauthStart({ auth, request, response, session }: HttpContext) {
+    if (instagramConfig.loginMode === 'instagram') {
+      return response.unprocessableEntity({
+        errors: [
+          {
+            message:
+              'Ce mode utilise le compte Instagram autorisé dans la configuration locale. Le parcours Facebook Login n’est pas utilisé.',
+          },
+        ],
+      })
+    }
     const actor = auth.getUserOrFail()
     const payload = await request.validateUsing(instagramOAuthStartValidator)
     const agencyId = actor.role === 'agency' ? actor.agencyId : payload.agencyId
@@ -88,7 +98,7 @@ export default class InstagramController {
       expiresAt: Date.now() + 10 * 60_000,
     }
     session.put('instagram_oauth_nonce', nonce)
-    const state = encryption.encrypt(JSON.stringify(statePayload), 600, 'instagram:oauth-state')
+    const state = encryption.encrypt(JSON.stringify(statePayload), '10m', 'instagram:oauth-state')
     return response.ok({
       data: { authorizationUrl: getInstagramOAuthClient().authorizationUrl(state) },
     })
@@ -156,7 +166,12 @@ export default class InstagramController {
             ? DateTime.utc().plus({ seconds: longToken.expiresIn })
             : null,
           scopes: grantedScopes,
-          metadataJson: { pageTasks: page.tasks, facebookPageId: page.facebookPageId },
+          metadataJson: {
+            pageTasks: page.tasks,
+            facebookPageId: page.facebookPageId,
+            driver: instagramConfig.driver,
+            loginMode: 'facebook',
+          },
           status: 'connected',
           createdBy: existing?.createdBy ?? actor.id,
           revokedAt: null,
@@ -183,7 +198,7 @@ export default class InstagramController {
       })
       const success = new URL(instagramConfig.successUrl)
       success.searchParams.set('instagram', 'connected')
-      response.redirect(success.toString())
+      response.redirect().withQs(false).toPath(success.toString())
     } catch (error) {
       logger.warn({
         event: 'social.instagram_oauth_failed',
@@ -199,7 +214,10 @@ export default class InstagramController {
     const query = SocialAccount.query().where('network', 'instagram').orderBy('createdAt', 'desc')
     if (actor.role === 'agency') query.where('agencyId', actor.agencyId!)
     const accounts = await query
-    return response.ok({ data: accounts.map(toSocialAccountView) })
+    return response.ok({
+      data: accounts.map(toSocialAccountView),
+      meta: { loginMode: instagramConfig.loginMode, driver: instagramConfig.driver },
+    })
   }
 
   async revoke({ auth, logger, request, response }: HttpContext) {

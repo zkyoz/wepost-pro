@@ -1,3 +1,4 @@
+import instagramConfig from '#config/instagram'
 import AuditLog from '#models/audit_log'
 import MediaAsset from '#models/media_asset'
 import Project from '#models/project'
@@ -109,6 +110,47 @@ async function account(owner: User) {
 }
 
 test.group('Instagram publishing HTTP', () => {
+  test('blocks incompatible account modes before scheduling a real publication', async ({
+    client,
+    assert,
+  }) => {
+    const original = { driver: instagramConfig.driver, loginMode: instagramConfig.loginMode }
+    try {
+      const agency = await user('agency', 'modes')
+      const customer = await user('client', 'modes')
+      const publication = await approvedPublication(agency, await project(agency, customer))
+      const instagram = await account(agency)
+      instagramConfig.driver = 'instagram'
+      instagramConfig.loginMode = 'instagram'
+      const blocked = await client
+        .post(`/api/v1/social/instagram/publications/${publication.id}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: instagram.id })
+      blocked.assertStatus(422)
+      const schedules = await ScheduledPublication.query().count('* as total')
+      assert.equal(schedules[0].$extras.total, '0')
+      const wrongOAuth = await client
+        .post('/api/v1/social/instagram/oauth/start')
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ instagramAccountId: instagram.externalAccountId })
+      wrongOAuth.assertStatus(422)
+      instagram.metadataJson = { driver: 'instagram', loginMode: 'instagram' }
+      await instagram.save()
+      const valid = await client
+        .post(`/api/v1/social/instagram/publications/${publication.id}/validate`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: instagram.id })
+      valid.assertBodyContains({ data: { valid: true } })
+      const listed = await client.get('/api/v1/social/instagram/accounts').loginAs(agency)
+      assert.equal(listed.body().data[0].mode, 'live')
+      assert.notProperty(listed.body().data[0], 'encryptedAccessToken')
+    } finally {
+      Object.assign(instagramConfig, original)
+    }
+  })
   test('connects the explicitly selected managed Page with protected OAuth state', async ({
     client,
     assert,
@@ -130,6 +172,9 @@ test.group('Instagram publishing HTTP', () => {
       .withSession(start.session())
       .redirects(0)
     callback.assertStatus(302)
+    const destination = new URL(instagramConfig.successUrl)
+    destination.searchParams.set('instagram', 'connected')
+    callback.assertHeader('location', destination.toString())
     const connected = await SocialAccount.query().where('agencyId', agencyId).firstOrFail()
     assert.equal(connected.externalAccountId, '17841400000000000')
     assert.notInclude(connected.encryptedAccessToken!, 'mock-instagram-access-token')

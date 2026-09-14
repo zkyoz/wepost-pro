@@ -1,0 +1,29 @@
+@import "@fontsource-variable/inter";
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme static {
+  --font-sans: "Inter Variable", Inter, system-ui, sans-serif;
+  --color-orange-50: #fff3eb;
+  --color-orange-100: #ffe3cf;
+  --color-orange-200: #ffc59e;
+  --color-orange-300: #ffa16e;
+  --color-orange-400: #ff803e;
+  --color-orange-500: #f2590d;
+  --color-orange-600: #c34308;
+  --color-orange-700: #9f350b;
+  --color-orange-800: #7e2e10;
+  --color-orange-900: #662911;
+  --color-orange-950: #381305;
+  --color-sage-50: #f3f8f6;
+  --color-sage-100: #e3efea;
+  --color-sage-200: #bbd9d1;
+  --color-sage-300: #91bbae;
+  --color-sage-400: #679b8a;
+  --color-sage-500: #477e6b;
+  --color-sage-600: #366453;
+  --color-sage-700: #2e5145;
+  --color-sage-800: #294339;
+  --color-sage-900: #233930;
+  --color-sage-950: #10221b;
+}

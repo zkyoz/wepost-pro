@@ -18,3 +18,10 @@ Version testée : arbre local du 22/07/2026. Environnement : macOS, PostgreSQL e
 | MED-12 | Navigation clavier/RGAA | interface chargée                       | parcourir upload, alt et ordre         | parcours complet, focus visible, annonces        | à vérifier en préproduction | À faire |
 
 Captures à joindre : upload en cours, liste ordonnée, aperçu client, erreur par fichier et recette à 320 px.
+
+## Complément R2 réel — BC03
+
+MED-01 et MED-07 ont également été parcourus avec R2 réel : upload JPEG depuis
+l'interface, finalisation, association et lecture par le client. Quatre anciens
+médias ont été conservés par copie vérifiée. La lecture non signée est refusée
+et un lien expiré renvoie HTTP 403. Voir les [résultats et captures](../evidence/r2-demo/verification.md).

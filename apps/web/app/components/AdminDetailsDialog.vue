@@ -4,7 +4,8 @@ const props = defineProps<{
   details: Record<string, unknown> | null;
 }>();
 const dialog = ref<HTMLDialogElement>();
-const closeButton = ref<HTMLButtonElement>();
+const titleId = useId();
+const titleElement = ref<HTMLHeadingElement>();
 let trigger: HTMLElement | null = null;
 
 const entries = computed(() => Object.entries(props.details ?? {}));
@@ -22,7 +23,8 @@ async function open() {
   trigger = document.activeElement as HTMLElement | null;
   dialog.value?.showModal();
   await nextTick();
-  closeButton.value?.focus();
+  titleElement.value?.focus({ preventScroll: true });
+  if (dialog.value) dialog.value.scrollTop = 0;
 }
 
 function close() {
@@ -40,9 +42,10 @@ defineExpose({ open });
   <dialog
     ref="dialog"
     class="confirm-dialog admin-details-dialog"
+    :aria-labelledby="titleId"
     @close="restoreFocus"
   >
-    <h2>{{ props.title }}</h2>
+    <h2 :id="titleId" ref="titleElement" tabindex="-1">{{ props.title }}</h2>
     <dl class="admin-details-list">
       <div v-for="[key, value] in entries" :key="key">
         <dt>{{ key }}</dt>
@@ -50,7 +53,7 @@ defineExpose({ open });
       </div>
     </dl>
     <div class="dialog-actions">
-      <button ref="closeButton" type="button" @click="close">Fermer</button>
+      <button type="button" @click="close">Fermer</button>
     </div>
   </dialog>
 </template>

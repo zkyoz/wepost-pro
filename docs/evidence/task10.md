@@ -34,3 +34,117 @@ Le scénario E2E LinkedIn et son scan axe sont intégrés au parcours multi-rés
 ## Preuves externes restantes
 
 Ajouter le SHA, les runs CI rouge/vert, les captures de connexion/validation/statut, l’approbation du produit LinkedIn requis, une organisation de test, un texte et une image réellement publiés sans duplication, les métriques 24 h et la recette préproduction. Ne jamais capturer un token, une URL d’upload ou la clé de chiffrement.
+
+## Extension BC03 — résultats de la branche de démonstration
+
+- API : 204 tests ; couverture lignes 86,55 %, branches 71,82 %.
+- Frontend : 109 tests ; couverture lignes 84,67 %, branches 76,77 %.
+- Worker : 106 tests ; couverture lignes 92,26 %, branches 81,69 %.
+- Lanceur réel : deux tests Node, sans appel réseau, ajoutés au workflow CI.
+- Lint, TypeScript, builds API/Nuxt/worker et synchronisation OpenAPI : réussis localement.
+- Parcours navigateur local : connexion agence, choix Page/personnel, callback
+  simulé et affichage du profil avec ses scopes ; contrôle console sans erreur
+  ni avertissement durant ce parcours. La confirmation d’envoi réel est
+  testée avec une réponse simulée, sans publication externe.
+
+Les pourcentages correspondent au périmètre des outils de couverture actuels,
+pas à une conformité RGAA ni à une preuve d’autorisation LinkedIn. Le scénario
+E2E existant a été adapté aux deux cibles ; sa nouvelle exécution complète en
+CI reste à vérifier. Cette branche n’est pas fusionnée dans develop/main et
+n’est pas déployée en production.
+
+## Correctif OAuth différé — 13 septembre 2026
+
+- Test rouge : deux échecs sur dix tests LinkedIn avant correction, pour des
+  callbacks différés de deux secondes et neuf minutes.
+- Test vert : dix tests LinkedIn sur dix après correction ; 207 tests API
+  réussis sur `wepost_test`.
+- Couverture API mesurée : lignes 86,56 %, branches 71,90 %, fonctions 83,92 %.
+- Formatage des deux fichiers TypeScript, lint ciblé, TypeScript API et build
+  API : réussis.
+- Après redémarrage : frontend, `/health/live` et `/health/ready` HTTP 200.
+- Parcours navigateur : WePost agence → Continuer avec LinkedIn →
+  identification LinkedIn effectuée par le titulaire → retour à WePost.
+  Le profil affiche « Connexion réelle à LinkedIn », le statut `connected`
+  et `openid`, `profile`, `w_member_social`. Capture vérifiée dans le navigateur
+  intégré, sans token ni code OAuth visible. Aucune publication n’a été lancée.
+- Le journal navigateur consulté contient un message `XMLHttpRequest` issu
+  d’un script `static.licdn.com` pendant l’identification ; il n’a pas empêché
+  le retour réussi. Aucune erreur provenant de WePost n’apparaît dans ce relevé.
+- Correctif : commit `6dd960d`, poussé sur `codex/bc03-demo`.
+
+La [fiche de bogue](../bugs/linkedin-oauth-state-expiry.md) décrit le périmètre
+et les limites. La CI précédente de la PR #29 comporte des échecs distincts ;
+les résultats locaux ci-dessus ne sont pas présentés comme une CI verte.
+
+## Premier envoi LinkedIn réel — 13 septembre 2026
+
+Recette manuelle dans le navigateur intégré, sur les builds locaux de la
+branche `codex/bc03-demo` (correctif exécutable `6dd960d`, HEAD `ede6a34`
+au début de l’essai). Le titulaire a demandé un simple post de test sur son
+profil personnel, qu’il pourra supprimer ensuite.
+
+- Texte publié, sans image : « Publication de test depuis WePost. »
+- Publication locale : `3255e3de-8012-4f4c-bec3-946166edb9ad`, version 1.
+- Parcours réalisé par l’agent avec les comptes de démonstration : création
+  agence → en cours → demande de validation → connexion client → approbation
+  de la version 1 → reconnexion agence → validation LinkedIn → envoi confirmé.
+- Compte distant : profil personnel réel du titulaire, pas le profil simulé.
+- Résultat WePost : statut « Publiée », une tentative affichée « Réussie ».
+- Identifiant retourné : `urn:li:share:7504938972733861889`.
+- Vérification externe : [post LinkedIn](https://www.linkedin.com/feed/update/urn:li:share:7504938972733861889/)
+  ouvert dans le navigateur, auteur et texte conformes, visibilité publique.
+- Capture du post vérifiée visuellement ; journal console WePost consulté
+  sans erreur ni avertissement sur ce parcours.
+
+Il s’agit d’un test réel de publication textuelle, pas d’une approbation par
+un client externe : les deux rôles WePost ont été joués pour la recette.
+La présence du post est vérifiée au moment de l’essai ; son lien peut devenir
+indisponible si le titulaire le supprime. Aucun second envoi, test de média,
+Page entreprise ou réseau X n’est effectué ici. Les e-mails restent dans
+la boîte locale. Ce succès ne résout pas les échecs CI signalés plus haut.
+
+## Envoi LinkedIn réel avec image — 13 septembre 2026
+
+Recette manuelle de l'interface sur `codex/bc03-demo`, HEAD `3bd2d79`
+au début de l'essai. Aucun changement de code exécutable n'a été nécessaire.
+
+- Publication locale : `fa708dce-7068-424c-8e1b-0631f585a5c7`, version 1.
+- Texte : « Publication de test avec image depuis WePost. »
+- Image : `docs/evidence/task23/screenshots/landing-desktop.png`, capture
+  de la page d'accueil, PNG 1280 × 4865, 767 570 octets. Le visuel a été
+  inspecté avant transfert ; il ne contient pas de données client privées.
+- Téléversement via le formulaire WePost, association et aperçu affichés,
+  alternative textuelle renseignée ; média `c587e4e4-5511-4fe7-bff3-3c4b9eeaa3ea`.
+- Parcours : création agence → ajout du média → en cours → demande de
+  validation → approbation par le compte client de démonstration → retour
+  agence → validation de compatibilité → confirmation d'envoi public.
+- Cible : profil personnel réel Martin BARRE, sans utilisation du compte simulé.
+- Résultat : « Publiée » dans le panneau LinkedIn et dans la fiche après
+  rechargement ; une tentative, affichée « Réussie ».
+- Identifiant distant : `urn:li:share:7504950966266388480`.
+- [Post LinkedIn vérifié](https://www.linkedin.com/feed/update/urn:li:share:7504950966266388480/) :
+  auteur, texte, visibilité mondiale et image contrôlés dans le navigateur.
+  La capture affichée lors de la recette montre effectivement le visuel.
+- Journal console WePost consulté : aucune erreur ni aucun avertissement.
+
+Le test valide le transfert d'une image et la création d'un post personnel
+réel depuis l'application locale. Le stockage média de ce parcours est local,
+pas R2 ; les e-mails restent locaux. Les rôles agence/client ont été joués
+pour la recette, sans intervention d'un client externe. La transmission de
+l'alternative textuelle à LinkedIn n'est pas validée par cette observation.
+Le titulaire peut supprimer le post après vérification, comme le précédent
+post textuel qu'il a indiqué avoir supprimé. Page entreprise, X et correction
+de la CI ne font pas partie de cet essai. Aucune fusion ni mise en production.
+
+## Correctif multiréseau — 14 septembre 2026
+
+La [fiche du correctif](../bugs/multinetwork-partial-publication.md) décrit la
+reprise d'un réseau restant après le succès de l'autre, les protections serveur,
+les résultats des tests et les limites de validation. Les deux ordres
+Instagram/LinkedIn sont couverts par les tests sans appels externes.
+
+La [recette réelle multiréseau](../recette/multinetwork-live.md) a ensuite
+confirmé la reprise de la première fiche et une nouvelle publication complète
+sur les deux comptes autorisés, une seule tentative par cible. Aucun jeton,
+URL signée, migration ou modification des droits n'a été nécessaire.

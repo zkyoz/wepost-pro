@@ -108,6 +108,33 @@ class FailingPublisher extends MockInstagramPublisher {
 }
 
 describe("Instagram publication worker", () => {
+  it("rejects mixed mock/live accounts and incompatible login modes before publishing", async () => {
+    for (const [driver, loginMode, expectedDriver, expectedLoginMode] of [
+      [undefined, undefined, "instagram", "instagram"],
+      ["instagram", "instagram", "mock", "instagram"],
+      ["instagram", "facebook", "instagram", "instagram"],
+    ] as const) {
+      const repository = new MemoryRepository({
+        ...validRecord(),
+        accountDriver: driver,
+        accountLoginMode: loginMode,
+      });
+      const publisher = new MockInstagramPublisher();
+      await expect(
+        processInstagramPublication(job(), {
+          repository,
+          publisher,
+          decryptToken: () => "token",
+          expectedDriver,
+          expectedLoginMode,
+        }),
+      ).rejects.toThrow(UnrecoverableError);
+      expect(publisher.calls).toBe(0);
+      expect(repository.failures[0]?.error.code).toBe(
+        "account_driver_mismatch",
+      );
+    }
+  });
   it("stops permanently when the schedule no longer exists", async () => {
     await expect(
       processInstagramPublication(job(), {

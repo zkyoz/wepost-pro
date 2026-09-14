@@ -1,3 +1,4 @@
+import tiktokConfig from '#config/tiktok'
 import AuditLog from '#models/audit_log'
 import MediaAsset from '#models/media_asset'
 import Project from '#models/project'
@@ -143,6 +144,9 @@ test.group('TikTok publishing HTTP', () => {
       .withSession(start.session())
       .redirects(0)
     callback.assertStatus(302)
+    const destination = new URL(tiktokConfig.successUrl)
+    destination.searchParams.set('tiktok', 'connected')
+    callback.assertHeader('location', destination.toString())
     const connected = await SocialAccount.query().where('agencyId', agencyId).firstOrFail()
     assert.equal(connected.externalAccountId, 'tiktok-open-id')
     assert.equal(

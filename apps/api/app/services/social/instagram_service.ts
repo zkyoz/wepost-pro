@@ -1,9 +1,11 @@
 import { validateInstagramPublication } from '#domain/social/instagram'
+import instagramConfig from '#config/instagram'
 import PublicationAttempt from '#models/publication_attempt'
 import type Publication from '#models/publication'
 import type ScheduledPublication from '#models/scheduled_publication'
 import type SocialAccount from '#models/social_account'
 import db from '@adonisjs/lucid/services/db'
+import { statusForRemainingNetwork } from '#services/social/social_status_service'
 
 export function toSocialAccountView(account: SocialAccount) {
   return {
@@ -15,6 +17,8 @@ export function toSocialAccountView(account: SocialAccount) {
     expiresAt: account.expiresAt?.toUTC().toISO() ?? null,
     scopes: account.scopes,
     status: account.status,
+    mode: account.metadataJson.driver === 'instagram' ? 'live' : 'mock',
+    loginMode: account.metadataJson.loginMode ?? 'facebook',
     createdAt: account.createdAt.toUTC().toISO()!,
     updatedAt: account.updatedAt.toUTC().toISO()!,
     revokedAt: account.revokedAt?.toUTC().toISO() ?? null,
@@ -80,8 +84,8 @@ export async function validatePublicationForInstagram(
   account: SocialAccount,
   effectiveText: string = publication.baseText
 ) {
-  return validateInstagramPublication({
-    status: publication.status,
+  const result = validateInstagramPublication({
+    status: await statusForRemainingNetwork(publication, 'instagram'),
     contentVersion: publication.contentVersion,
     approvedVersion: publication.approvedVersion,
     targetNetworks: publication.targetNetworks,
@@ -90,4 +94,14 @@ export async function validatePublicationForInstagram(
     accountExpiresAt: account.expiresAt?.toMillis() ?? null,
     media: await instagramMediaForPublication(publication.id),
   })
+  if (
+    (instagramConfig.driver === 'instagram' && account.metadataJson.driver !== 'instagram') ||
+    (instagramConfig.driver === 'mock' && account.metadataJson.driver === 'instagram') ||
+    (instagramConfig.driver === 'instagram' &&
+      (account.metadataJson.loginMode ?? 'facebook') !== instagramConfig.loginMode)
+  ) {
+    result.errors.push('Reconnectez ce compte dans le mode Instagram actuel avant de publier.')
+    result.valid = false
+  }
+  return result
 }

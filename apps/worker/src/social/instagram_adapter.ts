@@ -27,7 +27,8 @@ export class ReauthorizationRequiredError extends Error {
 
 type InstagramAdapterConfig = {
   graphApiVersion: string;
-  appSecret: string;
+  appSecret?: string;
+  loginMode?: "facebook" | "instagram";
   timeoutMs?: number;
   pollIntervalMs?: number;
   maxPollAttempts?: number;
@@ -153,9 +154,15 @@ export class InstagramPublisher implements SocialPublisher {
   }
 
   private appSecretProof(accessToken: string) {
-    return createHmac("sha256", this.config.appSecret)
+    return createHmac("sha256", this.config.appSecret ?? "")
       .update(accessToken)
       .digest("hex");
+  }
+
+  private get graphHost() {
+    return this.config.loginMode === "instagram"
+      ? "https://graph.instagram.com"
+      : "https://graph.facebook.com";
   }
 
   private async waitUntilReady(containerId: string, accessToken: string) {
@@ -178,10 +185,11 @@ export class InstagramPublisher implements SocialPublisher {
   private async graphGet(path: string, accessToken: string) {
     const query = new URLSearchParams({
       fields: "status_code,status",
-      appsecret_proof: this.appSecretProof(accessToken),
     });
+    if (this.config.loginMode !== "instagram")
+      query.set("appsecret_proof", this.appSecretProof(accessToken));
     const response = await fetch(
-      `https://graph.facebook.com/${this.config.graphApiVersion}/${path}?${query}`,
+      `${this.graphHost}/${this.config.graphApiVersion}/${path}?${query}`,
       {
         headers: { authorization: `Bearer ${accessToken}` },
         signal: AbortSignal.timeout(this.config.timeoutMs ?? 30_000),
@@ -208,9 +216,10 @@ export class InstagramPublisher implements SocialPublisher {
   ) {
     const body = new FormData();
     Object.entries(fields).forEach(([key, value]) => body.set(key, value));
-    body.set("appsecret_proof", this.appSecretProof(accessToken));
+    if (this.config.loginMode !== "instagram")
+      body.set("appsecret_proof", this.appSecretProof(accessToken));
     const response = await fetch(
-      `https://graph.facebook.com/${this.config.graphApiVersion}/${path}`,
+      `${this.graphHost}/${this.config.graphApiVersion}/${path}`,
       {
         method: "POST",
         headers: { authorization: `Bearer ${accessToken}` },

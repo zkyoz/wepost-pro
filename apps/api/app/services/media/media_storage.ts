@@ -1,4 +1,5 @@
 import mediaConfig from '#config/media'
+import { LocalFileStore } from '#services/media/local_file_store'
 import env from '#start/env'
 import {
   DeleteObjectCommand,
@@ -25,6 +26,9 @@ export interface MediaStorage {
 
 type LocalObject = { bytes: Buffer; contentType: string }
 const localObjects = new Map<string, LocalObject>()
+const localFiles = mediaConfig.localDirectory
+  ? new LocalFileStore(mediaConfig.localDirectory)
+  : null
 
 function localToken(key: string, purpose: 'upload' | 'read') {
   return encryption.encrypt(
@@ -71,20 +75,21 @@ class LocalMediaStorage implements MediaStorage {
   }
 
   async read(key: string) {
-    return localObjects.get(key) ?? null
+    return getLocalObject(key) ?? null
   }
 
   async delete(key: string) {
+    localFiles?.delete(key)
     localObjects.delete(key)
   }
 }
 
-class R2MediaStorage implements MediaStorage {
+export class R2MediaStorage implements MediaStorage {
   private client: S3Client
   private bucket: string
 
-  constructor() {
-    const { accountId, bucket, accessKeyId, secretAccessKey } = mediaConfig.r2
+  constructor(config = mediaConfig.r2) {
+    const { accountId, bucket, accessKeyId, secretAccessKey } = config
     if (!accountId || !bucket || !accessKeyId || !secretAccessKey) {
       throw new Error('Configuration Cloudflare R2 incomplète.')
     }
@@ -93,6 +98,9 @@ class R2MediaStorage implements MediaStorage {
       region: 'auto',
       endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
       credentials: { accessKeyId, secretAccessKey },
+      // The browser supplies the body later. Do not sign an empty-body CRC32.
+      // Finalization verifies the uploaded SHA-256, size and actual MIME type.
+      requestChecksumCalculation: 'WHEN_REQUIRED',
     })
   }
 
@@ -142,10 +150,12 @@ export function getMediaStorage() {
 }
 
 export function putLocalObject(key: string, object: LocalObject) {
+  if (localFiles) return localFiles.put(key, object)
   localObjects.set(key, object)
 }
 
 export function getLocalObject(key: string) {
+  if (localFiles) return localFiles.get(key)
   return localObjects.get(key)
 }
 

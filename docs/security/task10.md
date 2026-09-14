@@ -24,3 +24,55 @@ Une contrainte unique protège l’idempotence interne. Les tentatives persisten
 ## Tests
 
 Les tests couvrent state/rejeu, chiffrement et renouvellement, client en écriture, validation, médias, version/empreinte, token expiré, upload, hôte inattendu, timeout, 429, 5xx, erreurs définitives, idempotence, retry et révocation. Aucun appel LinkedIn réel n’est exécuté en CI.
+
+## Extension personnelle BC03
+
+Le `state` lie également le type de cible. Pour un profil personnel, le serveur
+obtient l’identifiant depuis `GET /v2/userinfo` avec le jeton OAuth ; aucun
+identifiant de personne fourni par le navigateur n’est accepté. L’auteur
+enregistré est `urn:li:person:<sub>`. Les permissions demandées sont `openid`,
+`profile` et `w_member_social`, sans demande d’e-mail ni de scope de Page.
+
+Le compte conserve le pilote ayant réalisé sa connexion. API et worker
+refusent le mélange des modes réel et simulé. Le formulaire avertit avant
+l’envoi public d’un compte réel. Les secrets du lanceur sont isolés dans
+`.demo/linkedin.env`, ignoré par Git ; seuls trois paramètres LinkedIn sont
+acceptés, sans possibilité d’écraser la base ou les clés de chiffrement.
+
+La lecture média locale est réservée au développement avec PostgreSQL/Redis
+sur loopback et chemin absolu. Les clés sont hachées, les liens symboliques
+refusés et la taille du fichier lue est bornée. Cette variante ne remplace pas
+R2 en production. Le risque résiduel de résultat distant incertain décrit
+plus haut demeure : vérifier LinkedIn avant une relance après incident.
+
+## Correction de la durée de l’état OAuth
+
+Le 13 septembre 2026, un test différé a révélé que la valeur numérique `600`
+était interprétée en millisecondes par le chiffrement installé. La durée de
+dix minutes annoncée plus haut était donc l’intention, pas le comportement
+effectif de cette ancienne version. L’option explicite `expiresIn: '10m'`
+corrige cet écart. Le `purpose`, le nonce de session à usage unique, les
+liaisons acteur/agence/cible et le contrôle `expiresAt` sont conservés.
+Les callbacks arrivant à dix minutes et les rejeux restent refusés.
+
+## Recette réelle avec image
+
+Le test du 13 septembre 2026 utilise un PNG de la page d'accueil, inspecté
+avant son téléversement, sans données client privées. L'agence a envoyé la
+version approuvée par le compte client de démonstration après confirmation
+explicite de l'envoi public. Les éléments conservés dans la recette sont le
+nom du fichier, les identifiants de publication et le résultat visible, sans
+jeton OAuth ni URL d'upload signée. Ce contrôle nominal ne remplace pas un
+audit de sécurité ni un test de rejeu réel.
+
+## Correctif multiréseau — 14 septembre 2026
+
+La [fiche du correctif](../bugs/multinetwork-partial-publication.md) décrit la
+reprise d'un réseau restant après le succès de l'autre, les protections serveur,
+les résultats des tests et les limites de validation. Les deux ordres
+Instagram/LinkedIn sont couverts par les tests sans appels externes.
+
+La [recette réelle multiréseau](../recette/multinetwork-live.md) a ensuite
+confirmé la reprise de la première fiche et une nouvelle publication complète
+sur les deux comptes autorisés, une seule tentative par cible. Aucun jeton,
+URL signée, migration ou modification des droits n'a été nécessaire.

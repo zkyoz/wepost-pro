@@ -4,6 +4,8 @@ const defaultMimeTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 
 
 const mediaConfig = {
   driver: env.get('MEDIA_STORAGE_DRIVER') ?? 'local',
+  localDirectory:
+    env.get('NODE_ENV') === 'development' ? env.get('MEDIA_LOCAL_DIRECTORY') : undefined,
   maxBytes: env.get('MEDIA_MAX_BYTES') ?? 20 * 1024 * 1024,
   signedUrlTtlSeconds: env.get('MEDIA_SIGNED_URL_TTL_SECONDS') ?? 300,
   abandonedUploadMinutes: env.get('MEDIA_ABANDONED_UPLOAD_MINUTES') ?? 60,

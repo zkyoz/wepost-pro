@@ -11,6 +11,12 @@ const successUrl =
   env.get('LINKEDIN_OAUTH_SUCCESS_URL') ?? 'http://localhost:3000/settings/linkedin'
 
 export const LINKEDIN_SCOPES = ['r_organization_admin', 'w_organization_social'] as const
+export const LINKEDIN_MEMBER_SCOPES = ['openid', 'profile', 'w_member_social'] as const
+export type LinkedInTargetType = 'member' | 'organization'
+
+export function linkedinScopes(targetType: LinkedInTargetType = 'organization') {
+  return targetType === 'member' ? LINKEDIN_MEMBER_SCOPES : LINKEDIN_SCOPES
+}
 
 export default {
   driver,

@@ -87,11 +87,24 @@ function applyPinterestSchedule() {
 function applyTikTokSchedule() {
   publication.value.status = "scheduled";
 }
+
+async function refreshPublicationStatus() {
+  try {
+    publication.value = (await api.get(publication.value.id)).data;
+  } catch {
+    announcement.value =
+      "Le statut général n’a pas pu être actualisé. Rechargez la fiche pour réessayer.";
+  }
+}
 </script>
 
 <template>
   <PrivateShell
-    ><main id="main-content" class="dashboard" tabindex="-1">
+    ><main
+      id="main-content"
+      class="dashboard publication-workspace"
+      tabindex="-1"
+    >
       <nav class="breadcrumbs" aria-label="Fil d’Ariane">
         <ol>
           <li><NuxtLink to="/projects">Projets</NuxtLink></li>
@@ -123,74 +136,143 @@ function applyTikTokSchedule() {
             :to="`/publications/${publication.id}/edit`"
             >Modifier</NuxtLink
           >
-          <button type="button" @click="duplicate">Dupliquer</button>
-          <button
+          <UButton
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-copy"
+            type="button"
+            @click="duplicate"
+            >Dupliquer</UButton
+          >
+          <UButton
             v-if="publication.status !== 'archived'"
+            color="neutral"
+            variant="outline"
+            icon="i-lucide-archive"
             type="button"
             @click="archive"
           >
             Archiver
-          </button>
+          </UButton>
         </div>
       </div>
       <p class="status-message" role="status" aria-live="polite">
         {{ announcement }}
       </p>
-      <section class="publication-detail" aria-labelledby="publication-content">
-        <h2 id="publication-content">Contenu</h2>
-        <p class="publication-copy">{{ publication.baseText }}</p>
-        <dl>
-          <div>
-            <dt>Réseaux</dt>
-            <dd>{{ publication.targetNetworks.join(" · ") }}</dd>
-          </div>
-          <div>
-            <dt>Version</dt>
-            <dd>
-              {{ publication.contentVersion
-              }}<template v-if="publication.approvedVersion">
-                — approuvée : {{ publication.approvedVersion }}</template
-              >
-            </dd>
-          </div>
-          <div>
-            <dt>Date souhaitée</dt>
-            <dd>
-              {{
-                publication.scheduledAt
-                  ? new Date(publication.scheduledAt).toLocaleString("fr-FR")
-                  : "Non définie"
-              }}
-              — {{ publication.timezone }}
-            </dd>
-          </div>
-        </dl>
-      </section>
-      <PublicationTranslations
-        v-if="user"
-        :publication-id="publication.id"
-        :source-text="publication.baseText"
-        :content-version="publication.contentVersion"
-        :role="user.role"
-      />
-      <AiTextAssistant
-        v-if="
-          canManage &&
-          !['publishing', 'published', 'archived'].includes(publication.status)
-        "
-        :publication-id="publication.id"
-        :content-version="publication.contentVersion"
-        @applied="applyAiVariant"
-      />
-      <PublicationNetworkVariants
-        v-if="user"
-        :publication-id="publication.id"
-        :source-text="publication.baseText"
-        :content-version="publication.contentVersion"
-        :target-networks="publication.targetNetworks"
-        :role="user.role"
-        :publication-status="publication.status"
-      />
+      <nav
+        class="publication-workspace-nav"
+        aria-label="Sections de la publication"
+      >
+        <a href="#publication-content"
+          ><UIcon name="i-lucide-file-text" />Contenu</a
+        >
+        <a href="#publication-media"><UIcon name="i-lucide-image" />Médias</a>
+        <a href="#publication-conversation"
+          ><UIcon name="i-lucide-message-square" />Discussion</a
+        >
+        <a href="#publication-delivery"
+          ><UIcon name="i-lucide-send" />Publication</a
+        >
+        <a href="#publication-history"
+          ><UIcon name="i-lucide-history" />Historique</a
+        >
+      </nav>
+      <div class="publication-overview">
+        <section
+          class="publication-detail"
+          aria-labelledby="publication-content"
+        >
+          <h2 id="publication-content">Contenu</h2>
+          <p class="publication-copy">{{ publication.baseText }}</p>
+        </section>
+        <aside
+          class="publication-detail publication-metadata"
+          aria-label="Détails de la publication"
+        >
+          <h2>Détails de la publication</h2>
+          <dl>
+            <div>
+              <dt>Réseaux</dt>
+              <dd class="publication-network-badges">
+                <span
+                  v-for="network in publication.targetNetworks"
+                  :key="network"
+                  ><AppIcon :name="network" :size="15" />{{ network }}</span
+                >
+              </dd>
+            </div>
+            <div>
+              <dt>Version</dt>
+              <dd>
+                {{ publication.contentVersion
+                }}<template v-if="publication.approvedVersion">
+                  — approuvée : {{ publication.approvedVersion }}</template
+                >
+              </dd>
+            </div>
+            <div>
+              <dt>Date souhaitée</dt>
+              <dd>
+                {{
+                  publication.scheduledAt
+                    ? new Date(publication.scheduledAt).toLocaleString("fr-FR")
+                    : "Non définie"
+                }}
+                — {{ publication.timezone }}
+              </dd>
+            </div>
+          </dl>
+        </aside>
+      </div>
+      <div class="publication-tools">
+        <details v-if="user">
+          <summary><UIcon name="i-lucide-languages" />Traductions</summary>
+          <PublicationTranslations
+            v-if="user"
+            :publication-id="publication.id"
+            :source-text="publication.baseText"
+            :content-version="publication.contentVersion"
+            :role="user.role"
+          />
+        </details>
+        <details
+          v-if="
+            canManage &&
+            !['publishing', 'published', 'archived'].includes(
+              publication.status,
+            )
+          "
+        >
+          <summary>
+            <UIcon name="i-lucide-sparkles" />Assistant de rédaction
+          </summary>
+          <AiTextAssistant
+            v-if="
+              canManage &&
+              !['publishing', 'published', 'archived'].includes(
+                publication.status,
+              )
+            "
+            :publication-id="publication.id"
+            :content-version="publication.contentVersion"
+            @applied="applyAiVariant"
+          />
+        </details>
+        <details v-if="user">
+          <summary>
+            <UIcon name="i-lucide-layers" />Variantes par réseau
+          </summary>
+          <PublicationNetworkVariants
+            v-if="user"
+            :publication-id="publication.id"
+            :source-text="publication.baseText"
+            :content-version="publication.contentVersion"
+            :target-networks="publication.targetNetworks"
+            :role="user.role"
+            :publication-status="publication.status"
+          />
+        </details>
+      </div>
       <section
         v-if="canManage && nextStatuses.length"
         class="publication-detail"
@@ -208,63 +290,71 @@ function applyTikTokSchedule() {
           </button>
         </div>
       </section>
-      <PublicationMediaManager
-        :publication-id="publication.id"
-        :content-version="publication.contentVersion"
-        :can-manage="canManage"
-      />
-      <PublicationDiscussion
-        v-if="user"
-        :publication-id="publication.id"
-        :status="publication.status"
-        :content-version="publication.contentVersion"
-        :role="user.role"
-        @reviewed="applyReview"
-      />
-      <FacebookPublishingPanel
-        v-if="user && publication.targetNetworks.includes('facebook')"
-        :publication-id="publication.id"
-        :role="user.role"
-        :status="publication.status"
-        :scheduled-at="publication.scheduledAt"
-        @scheduled="applyFacebookSchedule"
-      />
-      <InstagramPublishingPanel
-        v-if="user && publication.targetNetworks.includes('instagram')"
-        :publication-id="publication.id"
-        :role="user.role"
-        :status="publication.status"
-        :scheduled-at="publication.scheduledAt"
-        @scheduled="applyInstagramSchedule"
-      />
-      <LinkedInPublishingPanel
-        v-if="user && publication.targetNetworks.includes('linkedin')"
-        :publication-id="publication.id"
-        :role="user.role"
-        :status="publication.status"
-        :scheduled-at="publication.scheduledAt"
-        @scheduled="applyLinkedInSchedule"
-      />
-      <PinterestPublishingPanel
-        v-if="user && publication.targetNetworks.includes('pinterest')"
-        :publication-id="publication.id"
-        :role="user.role"
-        :status="publication.status"
-        :scheduled-at="publication.scheduledAt"
-        :publication-title="publication.title"
-        :publication-text="publication.baseText"
-        @scheduled="applyPinterestSchedule"
-      />
-      <TikTokPublishingPanel
-        v-if="user && publication.targetNetworks.includes('tiktok')"
-        :publication-id="publication.id"
-        :role="user.role"
-        :status="publication.status"
-        :scheduled-at="publication.scheduledAt"
-        :publication-title="publication.title"
-        :publication-text="publication.baseText"
-        @scheduled="applyTikTokSchedule"
-      />
+      <div id="publication-media" class="publication-anchor">
+        <PublicationMediaManager
+          :publication-id="publication.id"
+          :content-version="publication.contentVersion"
+          :can-manage="canManage"
+        />
+      </div>
+      <div id="publication-conversation" class="publication-anchor">
+        <PublicationDiscussion
+          v-if="user"
+          :publication-id="publication.id"
+          :status="publication.status"
+          :content-version="publication.contentVersion"
+          :role="user.role"
+          @reviewed="applyReview"
+        />
+      </div>
+      <div id="publication-delivery" class="publication-anchor">
+        <FacebookPublishingPanel
+          v-if="user && publication.targetNetworks.includes('facebook')"
+          :publication-id="publication.id"
+          :role="user.role"
+          :status="publication.status"
+          :scheduled-at="publication.scheduledAt"
+          @scheduled="applyFacebookSchedule"
+        />
+        <InstagramPublishingPanel
+          v-if="user && publication.targetNetworks.includes('instagram')"
+          :publication-id="publication.id"
+          :role="user.role"
+          :status="publication.status"
+          :scheduled-at="publication.scheduledAt"
+          @scheduled="applyInstagramSchedule"
+          @refreshed="refreshPublicationStatus"
+        />
+        <LinkedInPublishingPanel
+          v-if="user && publication.targetNetworks.includes('linkedin')"
+          :publication-id="publication.id"
+          :role="user.role"
+          :status="publication.status"
+          :scheduled-at="publication.scheduledAt"
+          @scheduled="applyLinkedInSchedule"
+          @refreshed="refreshPublicationStatus"
+        />
+        <PinterestPublishingPanel
+          v-if="user && publication.targetNetworks.includes('pinterest')"
+          :publication-id="publication.id"
+          :role="user.role"
+          :status="publication.status"
+          :scheduled-at="publication.scheduledAt"
+          :publication-title="publication.title"
+          :publication-text="publication.baseText"
+          @scheduled="applyPinterestSchedule"
+        />
+        <TikTokPublishingPanel
+          v-if="user && publication.targetNetworks.includes('tiktok')"
+          :publication-id="publication.id"
+          :role="user.role"
+          :status="publication.status"
+          :scheduled-at="publication.scheduledAt"
+          :publication-title="publication.title"
+          :publication-text="publication.baseText"
+          @scheduled="applyTikTokSchedule"
+        />
+      </div>
       <section class="publication-detail" aria-labelledby="publication-history">
         <h2 id="publication-history">Historique des versions</h2>
         <p v-if="!publication.versions?.length">Aucune version.</p>

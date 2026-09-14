@@ -1,3 +1,4 @@
+import linkedinConfig from '#config/linkedin'
 import AuditLog from '#models/audit_log'
 import MediaAsset from '#models/media_asset'
 import Project from '#models/project'
@@ -14,6 +15,7 @@ import { test } from '@japa/runner'
 import db from '@adonisjs/lucid/services/db'
 import { DateTime } from 'luxon'
 import { createHash, randomUUID } from 'node:crypto'
+import { mock } from 'node:test'
 
 const agencyId = '80000000-0000-4000-8000-000000000001'
 const password = 'correct-horse-battery-staple'
@@ -87,16 +89,19 @@ async function approvedPublication(owner: User, parent: Project) {
   return publication
 }
 
-async function account(owner: User) {
+async function account(owner: User, network: 'linkedin' | 'instagram' = 'linkedin') {
   return SocialAccount.create({
     agencyId,
-    network: 'linkedin',
+    network,
     externalAccountId: '123456789',
     externalAccountName: 'Wepost Test',
     encryptedAccessToken: encryptSocialToken('page-token', tokenKey),
     encryptedRefreshToken: null,
     expiresAt: DateTime.utc().plus({ days: 30 }),
-    scopes: ['r_organization_admin', 'w_organization_social'],
+    scopes:
+      network === 'linkedin'
+        ? ['r_organization_admin', 'w_organization_social']
+        : ['instagram_basic', 'instagram_content_publish'],
     metadataJson: { role: 'ADMINISTRATOR' },
     status: 'connected',
     createdBy: owner.id,
@@ -126,6 +131,9 @@ test.group('LinkedIn publishing HTTP', () => {
       .withSession(start.session())
       .redirects(0)
     callback.assertStatus(302)
+    const destination = new URL(linkedinConfig.successUrl)
+    destination.searchParams.set('linkedin', 'connected')
+    callback.assertHeader('location', destination.toString())
     const connected = await SocialAccount.query().where('agencyId', agencyId).firstOrFail()
     assert.equal(connected.externalAccountId, '123456789')
     assert.notInclude(connected.encryptedAccessToken!, 'mock-linkedin-access-token')
@@ -142,6 +150,140 @@ test.group('LinkedIn publishing HTTP', () => {
       .get(`${authorization.pathname}${authorization.search}`)
       .withSession(callback.session())
     reused.assertStatus(400)
+  })
+
+  test('connects a personal profile without a Page id and preserves the encrypted OAuth binding', async ({
+    client,
+    assert,
+  }) => {
+    const agency = await user('agency', 'member')
+    const start = await client
+      .post('/api/v1/social/linkedin/oauth/start')
+      .loginAs(agency)
+      .withCsrfToken()
+      .json({ targetType: 'member' })
+    start.assertStatus(200)
+    const authorization = new URL(start.body().data.authorizationUrl)
+    const callback = await client
+      .get(`${authorization.pathname}${authorization.search}`)
+      .withSession(start.session())
+      .redirects(0)
+    callback.assertStatus(302)
+    assert.notInclude(callback.header('location')!, 'state=')
+    const connected = await SocialAccount.query().where('agencyId', agencyId).firstOrFail()
+    assert.equal(connected.externalAccountId, 'urn:li:person:mock-member')
+    assert.equal(connected.metadataJson.targetType, 'member')
+    assert.equal(connected.metadataJson.driver, 'mock')
+    assert.deepEqual(connected.scopes, ['openid', 'profile', 'w_member_social'])
+    assert.notInclude(connected.encryptedAccessToken!, 'mock-linkedin-access-token')
+    const refreshed = await client
+      .post(`/api/v1/social/linkedin/accounts/${connected.id}/refresh`)
+      .loginAs(agency)
+      .withCsrfToken()
+    refreshed.assertStatus(200)
+    refreshed.assertBodyContains({
+      data: { connectionMode: 'mock', scopes: ['openid', 'profile', 'w_member_social'] },
+    })
+    const reused = await client
+      .get(`${authorization.pathname}${authorization.search}`)
+      .withSession(callback.session())
+    reused.assertStatus(400)
+  })
+
+  for (const elapsedMs of [2_000, 9 * 60_000, 10 * 60_000]) {
+    test(`enforces the ten-minute OAuth lifetime after ${elapsedMs} milliseconds`, async ({
+      client,
+      assert,
+    }) => {
+      const agency = await user('agency', `oauth-delay-${elapsedMs}`)
+      mock.timers.enable({ apis: ['Date'], now: new Date() })
+      try {
+        const start = await client
+          .post('/api/v1/social/linkedin/oauth/start')
+          .loginAs(agency)
+          .withCsrfToken()
+          .json({ targetType: 'member' })
+        start.assertStatus(200)
+        const authorization = new URL(start.body().data.authorizationUrl)
+
+        // Advance only the clock; no real LinkedIn request or waiting is needed.
+        mock.timers.tick(elapsedMs)
+        const callback = await client
+          .get(`${authorization.pathname}${authorization.search}`)
+          .withSession(start.session())
+          .redirects(0)
+
+        if (elapsedMs >= 10 * 60_000) {
+          callback.assertStatus(400)
+          callback.assertBodyContains({
+            errors: [{ message: 'État OAuth invalide ou expiré.' }],
+          })
+          assert.isNull(await SocialAccount.query().where('agencyId', agencyId).first())
+        } else {
+          callback.assertStatus(302)
+          assert.isNotNull(await SocialAccount.query().where('agencyId', agencyId).first())
+          const reused = await client
+            .get(`${authorization.pathname}${authorization.search}`)
+            .withSession(callback.session())
+          reused.assertStatus(400)
+        }
+      } finally {
+        mock.timers.reset()
+      }
+    })
+  }
+
+  test('rejects ambiguous targets, missing Page ids and client account connection', async ({
+    client,
+  }) => {
+    const agency = await user('agency', 'member-validation')
+    for (const payload of [
+      {},
+      { targetType: 'organization' },
+      { targetType: 'member', organizationId: '123456789' },
+      { targetType: 'other' },
+    ]) {
+      const result = await client
+        .post('/api/v1/social/linkedin/oauth/start')
+        .loginAs(agency)
+        .withCsrfToken()
+        // @ts-expect-error Send deliberately invalid targets to exercise runtime validation.
+        .json(payload)
+      result.assertStatus(422)
+    }
+    const customer = await user('client', 'member-validation')
+    const denied = await client
+      .post('/api/v1/social/linkedin/oauth/start')
+      .loginAs(customer)
+      .withCsrfToken()
+      .json({ targetType: 'member' })
+    denied.assertStatus(403)
+  })
+
+  test('blocks a simulated account in live mode before creating a schedule', async ({
+    client,
+    assert,
+  }) => {
+    const agency = await user('agency', 'driver')
+    const customer = await user('client', 'driver')
+    const parent = await project(agency, customer)
+    const publication = await approvedPublication(agency, parent)
+    const linkedin = await account(agency)
+    const original = linkedinConfig.driver
+    try {
+      linkedinConfig.driver = 'linkedin'
+      const response = await client
+        .post(`/api/v1/social/linkedin/publications/${publication.id}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      response.assertStatus(422)
+      assert.isNull(
+        await ScheduledPublication.query().where('publicationId', publication.id).first()
+      )
+    } finally {
+      linkedinConfig.driver = original
+    }
   })
 
   test('validates, schedules once and exposes status to the assigned client', async ({
@@ -255,6 +397,93 @@ test.group('LinkedIn publishing HTTP', () => {
     assert.equal(linkedin.status, 'revoked')
     assert.isNull(linkedin.encryptedAccessToken)
   })
+
+  for (const network of ['linkedin', 'instagram'] as const) {
+    test(`schedules remaining ${network} without republishing the other network`, async ({
+      client,
+      assert,
+    }) => {
+      const agency = await user('agency', 'late-network')
+      const customer = await user('client', 'late-network')
+      const parent = await project(agency, customer)
+      const publication = await approvedPublication(agency, parent)
+      publication.merge({ targetNetworks: ['instagram', 'linkedin'], status: 'published' })
+      await publication.save()
+      const linkedin = await account(agency, network)
+      const instagram = await SocialAccount.create({
+        agencyId,
+        network: network === 'linkedin' ? 'instagram' : 'linkedin',
+        externalAccountId: 'instagram-finished',
+        externalAccountName: 'Instagram test',
+        status: 'connected',
+        scopes: [],
+        metadataJson: {},
+        createdBy: agency.id,
+      })
+      const finished = await ScheduledPublication.create({
+        publicationId: publication.id,
+        network: network === 'linkedin' ? 'instagram' : 'linkedin',
+        accountId: instagram.id,
+        publicationVersion: 2,
+        runAt: DateTime.utc(),
+        status: 'published',
+        idempotencyKey: 'f'.repeat(64),
+        payloadHash: 'e'.repeat(64),
+      })
+      const url = `/api/v1/social/${network}/publications/${publication.id}` as const
+      // A completed older version cannot authorize an unapproved revision.
+      publication.approvedVersion = null
+      await publication.save()
+      const unapproved = await client
+        .post(`${url}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      unapproved.assertStatus(422)
+      publication.approvedVersion = 2
+      await publication.save()
+      finished.publicationVersion = 1
+      await finished.save()
+      const outdated = await client
+        .post(`${url}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      outdated.assertStatus(422)
+      finished.publicationVersion = 2
+      await finished.save()
+      const forbidden = await client
+        .post(`${url}/schedule`)
+        .loginAs(customer)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      forbidden.assertStatus(403)
+      const validation = await client
+        .post(`${url}/validate`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      validation.assertBodyContains({ data: { valid: true } })
+      const scheduled = await client
+        .post(`${url}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      scheduled.assertStatus(201)
+      const duplicate = await client
+        .post(`${url}/schedule`)
+        .loginAs(agency)
+        .withCsrfToken()
+        .json({ accountId: linkedin.id })
+      duplicate.assertStatus(200)
+      duplicate.assertBodyContains({ data: { id: scheduled.body().data.id } })
+      await finished.refresh()
+      await publication.refresh()
+      assert.equal(finished.status, 'published')
+      assert.equal(publication.status, 'scheduled')
+      assert.lengthOf(await ScheduledPublication.query().where('publicationId', publication.id), 2)
+    })
+  }
 
   test('keeps the publication scheduled while another network is still active', async ({
     assert,

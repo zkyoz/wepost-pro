@@ -253,19 +253,39 @@ onMounted(load);
         <button type="submit">Appliquer les filtres</button>
       </form>
 
-      <CalendarExportPanel
-        v-if="canManage && result"
-        :projects="result.filters.projects"
-        :range-start="range.start"
-        :range-end="range.end"
-        :timezone="displayTimezone"
-        :selected-project-id="projectId"
-      />
+      <details v-if="canManage && result" class="calendar-export-disclosure">
+        <summary>
+          <UIcon name="i-lucide-calendar-days" />Exporter ou synchroniser le
+          calendrier
+        </summary>
+        <CalendarExportPanel
+          v-if="canManage && result"
+          :projects="result.filters.projects"
+          :range-start="range.start"
+          :range-end="range.end"
+          :timezone="displayTimezone"
+          :selected-project-id="projectId"
+        />
+      </details>
 
       <div class="calendar-period">
-        <button type="button" @click="shift(-1)">Période précédente</button>
-        <button type="button" @click="today">Aujourd’hui</button>
-        <button type="button" @click="shift(1)">Période suivante</button>
+        <UButton
+          color="neutral"
+          variant="outline"
+          type="button"
+          @click="shift(-1)"
+          >Période précédente</UButton
+        >
+        <UButton color="neutral" variant="outline" type="button" @click="today"
+          >Aujourd’hui</UButton
+        >
+        <UButton
+          color="neutral"
+          variant="outline"
+          type="button"
+          @click="shift(1)"
+          >Période suivante</UButton
+        >
       </div>
 
       <p class="sr-only" role="status" aria-live="polite">{{ announcement }}</p>

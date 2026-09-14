@@ -4,12 +4,17 @@ import { loadConfig } from "./config.js";
 import { emailBackoffDelay, processNotificationEmail } from "./processor.js";
 import { PostgresNotificationRepository } from "./repository.js";
 import { ResendEmailSender } from "./resend_sender.js";
+import { FileEmailSender } from "./file_sender.js";
 import type { NotificationEmailJob } from "./types.js";
 import {
   FacebookPublisher,
   MockFacebookPublisher,
 } from "./social/facebook_adapter.js";
-import { MockMediaLoader, R2MediaLoader } from "./social/media_loader.js";
+import {
+  LocalMediaLoader,
+  MockMediaLoader,
+  R2MediaLoader,
+} from "./social/media_loader.js";
 import {
   processFacebookPublication,
   socialBackoffDelay,
@@ -23,6 +28,7 @@ import {
 } from "./social/instagram_adapter.js";
 import { processInstagramPublication } from "./social/instagram_processor.js";
 import {
+  DemoImageUrlProvider,
   MockMediaUrlProvider,
   R2MediaUrlProvider,
 } from "./social/media_url_provider.js";
@@ -55,14 +61,19 @@ const config = loadConfig();
 const pool = new pg.Pool(config.database);
 const dependencies = {
   repository: new PostgresNotificationRepository(pool),
-  sender: new ResendEmailSender(config.resendApiKey, config.emailFrom),
+  sender:
+    config.emailDriver === "file"
+      ? new FileEmailSender(config.emailOutboxDirectory)
+      : new ResendEmailSender(config.resendApiKey, config.emailFrom),
   webAppUrl: config.webAppUrl,
 };
 const mediaLoader =
   config.facebook.driver === "facebook" ||
   config.linkedin.driver === "linkedin" ||
   config.tiktok.driver === "tiktok"
-    ? new R2MediaLoader(config.r2.bucket, config.r2)
+    ? config.localMediaDirectory
+      ? new LocalMediaLoader(config.localMediaDirectory)
+      : new R2MediaLoader(config.r2.bucket, config.r2)
     : new MockMediaLoader();
 const facebookPublisher =
   config.facebook.driver === "facebook"
@@ -76,13 +87,21 @@ const facebookDependencies = {
 };
 const instagramMediaUrls =
   config.instagram.driver === "instagram"
-    ? new R2MediaUrlProvider(config.r2.bucket, config.r2)
+    ? config.instagram.demoImageUrl
+      ? new DemoImageUrlProvider(
+          new LocalMediaLoader(config.localMediaDirectory),
+          config.instagram.demoImageUrl,
+          config.instagram.demoImageSha256,
+        )
+      : new R2MediaUrlProvider(config.r2.bucket, config.r2)
     : new MockMediaUrlProvider();
 const instagramPublisher =
   config.instagram.driver === "instagram"
     ? new InstagramPublisher(config.instagram, instagramMediaUrls)
     : new MockInstagramPublisher();
 const instagramDependencies = {
+  expectedDriver: config.instagram.driver,
+  expectedLoginMode: config.instagram.loginMode,
   repository: new PostgresSocialPublicationRepository(pool, "instagram"),
   publisher: instagramPublisher,
   decryptToken: (token: string) =>
@@ -93,6 +112,7 @@ const linkedinPublisher =
     ? new LinkedInPublisher(config.linkedin, mediaLoader)
     : new MockLinkedInPublisher();
 const linkedinDependencies = {
+  expectedDriver: config.linkedin.driver,
   repository: new PostgresSocialPublicationRepository(pool, "linkedin"),
   publisher: linkedinPublisher,
   decryptToken: (token: string) =>
@@ -268,7 +288,10 @@ const heartbeatTimer = setInterval(
 );
 heartbeatTimer.unref();
 
+let shuttingDown = false;
 async function shutdown(signal: string) {
+  if (shuttingDown) return;
+  shuttingDown = true;
   console.info(JSON.stringify({ event: "worker.stopping", signal }));
   clearInterval(heartbeatTimer);
   await worker.close();

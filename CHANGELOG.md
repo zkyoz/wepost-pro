@@ -6,21 +6,126 @@ Toutes les évolutions notables de Wepost.pro sont consignées ici.
 
 ### Fixed
 
-- Isolé les endpoints de health du middleware de session Redis afin que le liveness reste disponible pendant une panne de dépendance.
+- Conservé l'heure locale et le fuseau d'une publication lors de la modification
+  du texte, avec tests de non-régression été/hiver, UTC et changement de jour.
+
+- Corrigé le statut global des publications multiréseaux lorsqu'une cible
+  termine avant la programmation de l'autre ; ajouté la reprise sécurisée des
+  anciennes fiches bloquées et la synchronisation du résumé après actualisation.
+  Voir [le correctif et ses tests](docs/bugs/multinetwork-partial-publication.md).
+
+- Corrigé l'hydratation de la supervision : un même instantané est partagé entre
+  le rendu serveur et le navigateur, sans double requête au chargement ;
+  l'actualisation manuelle est conservée.
+- Recentré les dialogues natifs avec hauteur limitée, défilement interne et
+  noms accessibles ; corrigé les contrastes du panneau de validation client,
+  des titres de la landing et des badges de supervision désactivés.
+- Rétabli la priorité visuelle des boutons principaux et ajouté une page
+  d'erreur aux couleurs de l'application, compatible avec les deux thèmes.
+
+- Corrigé la signature des uploads R2 pour ne pas signer le checksum d'un corps
+  vide avant l'envoi du fichier par le navigateur ; validation SHA-256 conservée.
+- Autorisé l'origine R2 configurée dans les directives CSP de connexion, image
+  et média, sans wildcard ni élargissement de la politique des scripts.
+
+- Synchronisé les tests E2E LinkedIn sur la nouvelle redirection OAuth avant
+  l'analyse d'accessibilité et isolé les noms et médias entre tentatives.
+- Mis à jour Ace 14.1.0 vers 14.1.1 pour corriger la validation des commandes
+  avec Node 24.20 et ultérieur, sans figer un ancien correctif Node.
+- Remplacé l'extraction HTML par expression régulière par le parseur parse5
+  pour les empreintes CSP des scripts, avec tests des balises atypiques.
+
+- Corrigé l’expiration prématurée de l’état OAuth LinkedIn : durée explicite
+  de dix minutes au lieu de 600 millisecondes, avec tests HTTP du délai,
+  de l’expiration et du rejeu.
+
+- Corrigé la conversion de la date proposée dans le panneau LinkedIn vers
+  l’heure locale du navigateur.
+
+- Rétabli l’interactivité du frontend compilé avec des empreintes CSP pour
+  les scripts Nuxt et l’origine API configurée.
+- Supprimé la retransmission de `code` et `state` dans les cinq redirections
+  OAuth de succès, avec assertions de non-régression HTTP.
+- Ajouté un stockage média local persistant optionnel pour les répétitions.
+- Rendu l’arrêt du worker idempotent en cas de signaux rapprochés.
+
+- Borné à cinq secondes le chargement des données du tableau de bord après
+  inscription, conservé la session visible en cas d'échec et ajouté une action
+  de relance avec tests desktop/mobile (`SUP-001`, commit `f0f581e`).
+- Isolé les endpoints de health du middleware de session Redis afin que le
+  liveness reste disponible pendant une panne de dépendance
+  ([BUG-022](https://github.com/zkyoz/wepost-pro/issues/22),
+  [PR #21](https://github.com/zkyoz/wepost-pro/pull/21)).
 
 ### Changed
 
+- Refondu l'interface avec Nuxt UI 4 : navigation latérale, tableau de bord,
+  projets, publications, calendrier, formulaires, connexions sociales et écrans
+  d'administration. Palette orange/anthracite/noir/vert sauge, thèmes clair et
+  sombre mémorisés, navigation mobile en panneau et ressources visuelles locales.
+- Réorganisé la fiche publication en sections accessibles et regroupé les outils
+  avancés dans des panneaux dépliables, sans modifier les règles de validation
+  ni les intégrations sociales.
+- Ajouté des tests de persistance du thème, de contraste et de reflow sur
+  ordinateur et mobile.
+
 - Documenté les seuils de supervision, la répétition des alertes et l'exercice local Uptime Kuma de C4.1.2.
+- Structuré la collecte des anomalies avec un template GitHub complet, des
+  statuts, des niveaux de criticité, des priorités et la fiche réelle
+  `BUG-022`.
+- Documenté la chaîne de correction de `BUG-022`, sa validation avant/après et
+  l'anomalie résiduelle de readiness `BUG-024`.
+- Ajouté une répétition automatique de déploiement du build API compilé et ses
+  smoke tests après les contrôles CI.
+- Priorisé les recommandations de maintenance C4.3.1 à partir des anomalies,
+  des KPI de supervision et des limites des retours utilisateurs disponibles,
+  avec délais, coûts indicatifs et critères de validation.
+- Ajouté un journal C4.3.2 reliant versions, dates, tags, commits, releases,
+  validations, déploiements et documentation des correctifs sans assimiler une
+  prérelease à une production.
+- Documenté la collaboration de support C4.3.3, le retour initial, la cause
+  technique, la répartition des responsabilités et les preuves de résolution.
 
 ### Ajouté
 
+- Profil local `demo:social:r2:start`, secrets S3 privés, CORS ciblé et migration
+  des anciens médias avec contrôle d'intégrité, sans suppression ni écrasement.
+- [Guide du stockage R2 pour l'oral](docs/manuals/r2-live-demo.md).
+
+- Publication réelle avec Instagram Login sans Page Facebook, import local chiffré
+  du token autorisé, séparation réel/simulé et pont HTTPS limité à un JPEG.
+- Recette réelle image réussie via les rôles agence/client de démonstration,
+  puis le worker BullMQ ; post et identifiant vérifiés auprès d’Instagram.
+- Actualisation du statut Instagram, confirmation avant publication réelle et
+  date proposée dans le fuseau local du navigateur.
+
+- Connexion LinkedIn personnelle via OpenID Connect et `w_member_social`,
+  en conservant le parcours Page entreprise existant.
+- Démarrage LinkedIn réel explicite pour la démo locale, lecture des médias
+  persistants par le worker et séparation des comptes réels et simulés.
+- Actualisation du statut et lien vers le post LinkedIn pour un identifiant
+  distant valide. Recettes réelles texte seul puis texte avec un PNG validées
+  sur le profil personnel autorisé ; Page entreprise et production non validées.
+
+- Profil oral local isolé : PostgreSQL/Redis dédiés, lanceur des trois builds,
+  comptes de démonstration et capture privée des e-mails du worker.
+- [Manuel de répétition BC03](docs/manuals/oral-demo.md) et
+  [diagnostic des correctifs](docs/bugs/bc03-demo-runtime.md).
 - documentation de l’architecture et de l’arborescence du monorepo.
 
 ### Sécurité
 
+- Overrides ciblés de `browserslist` 4.28.7, `js-yaml` 4.3.2 et `svgo` 4.1.0 :
+  audit de cette branche sans alerte élevée/critique, quatre alertes modérées
+  restantes. Cette mesure ne remplace pas une analyse de toutes les dépendances.
+
+- mise à jour de l'override transitif `nanoid` de 3.3.17 vers 3.3.18 après
+  l'avis élevé `GHSA-2v37-7h3g-55p8` ; audit local final sans vulnérabilité
+  connue ;
 - mise à jour de Nuxt 4.5.0 vers 4.5.2 et verrouillage des versions corrigées
   de huit dépendances transitives ; l’audit pnpm complet du 8 août 2026 ne
-  détecte plus de vulnérabilité connue.
+  détecte plus de vulnérabilité connue
+  ([PR #20](https://github.com/zkyoz/wepost-pro/pull/20)).
 
 ## [0.1.0-rc.1] - 2026-07-23
 

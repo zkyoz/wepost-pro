@@ -1,10 +1,15 @@
 <script setup lang="ts">
+import { en, fr } from "@nuxt/ui/locale";
+
 const { locale, t } = useLocale();
-useHead(() => ({ htmlAttrs: { lang: locale.value } }));
+const { theme } = useAppTheme();
+useHead(() => ({ htmlAttrs: { lang: locale.value, class: theme.value } }));
 </script>
 
 <template>
-  <a class="skip-link" href="#main-content">{{ t("common.skipLink") }}</a>
-  <NuxtRouteAnnouncer />
-  <NuxtPage />
+  <UApp :locale="locale === 'en' ? en : fr">
+    <a class="skip-link" href="#main-content">{{ t("common.skipLink") }}</a>
+    <NuxtRouteAnnouncer />
+    <NuxtPage />
+  </UApp>
 </template>

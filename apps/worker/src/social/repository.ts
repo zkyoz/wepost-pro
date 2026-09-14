@@ -1,4 +1,4 @@
-import type { Pool } from "pg";
+import type { Pool, PoolClient } from "pg";
 import type {
   PublishResult,
   ScheduledFacebookPublication,
@@ -18,6 +18,7 @@ type ScheduleRow = {
   payload_hash: string;
   account_id: string;
   account_status: string;
+  account_metadata: Record<string, unknown> | null;
   expires_at: Date | null;
   external_account_id: string;
   encrypted_access_token: string | null;
@@ -39,6 +40,54 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
       | "tiktok" = "facebook",
   ) {}
 
+  private async lockPublication(client: PoolClient, scheduleId: string) {
+    // Serialize completions from different networks of the same publication.
+    await client.query(
+      `SELECT p.id FROM publications p
+       JOIN scheduled_publications sp ON sp.publication_id = p.id
+       WHERE sp.id = $1 FOR UPDATE OF p`,
+      [scheduleId],
+    );
+  }
+
+  private async refreshPublicationStatus(
+    client: PoolClient,
+    publicationId: string | undefined,
+  ) {
+    if (!publicationId) return;
+    await client.query(
+      `UPDATE publications p
+       SET status = CASE
+         WHEN EXISTS (
+           SELECT 1 FROM scheduled_publications active
+           WHERE active.publication_id = p.id
+             AND active.publication_version = p.content_version
+             AND active.status IN ('queued', 'publishing')
+         ) THEN 'scheduled'
+         WHEN EXISTS (
+           SELECT 1 FROM scheduled_publications failed
+           WHERE failed.publication_id = p.id
+             AND failed.publication_version = p.content_version
+             AND failed.status = 'failed'
+         ) THEN 'failed'
+         WHEN EXISTS (
+           SELECT 1 FROM unnest(p.target_networks) AS target(network)
+           WHERE NOT EXISTS (
+             SELECT 1 FROM scheduled_publications completed
+             WHERE completed.publication_id = p.id
+               AND completed.publication_version = p.content_version
+               AND completed.network = target.network
+               AND completed.status IN ('published', 'cancelled')
+           )
+         ) THEN 'scheduled'
+         ELSE 'published'
+       END, updated_at = NOW()
+       WHERE p.id = $1 AND p.approved_version = p.content_version
+         AND p.status IN ('scheduled', 'publishing', 'published', 'failed')`,
+      [publicationId],
+    );
+  }
+
   async findForPublish(
     id: string,
   ): Promise<ScheduledFacebookPublication | ScheduledTikTokPublication | null> {
@@ -48,7 +97,7 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
               p.status AS publication_status, p.base_text, sp.idempotency_key, sp.payload_hash,
               sp.network_payload_json, sp.provider_job_id, sp.provider_status,
               sa.id AS account_id, sa.status AS account_status, sa.expires_at,
-              sa.external_account_id, sa.encrypted_access_token,
+              sa.external_account_id, sa.encrypted_access_token, sa.metadata_json AS account_metadata,
               published.remote_post_id
        FROM scheduled_publications sp
        INNER JOIN publications p ON p.id = sp.publication_id
@@ -93,6 +142,14 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
       payloadHash: row.payload_hash,
       accountId: row.account_id,
       accountStatus: row.account_status,
+      accountDriver:
+        typeof row.account_metadata?.driver === "string"
+          ? row.account_metadata.driver
+          : undefined,
+      accountLoginMode:
+        typeof row.account_metadata?.loginMode === "string"
+          ? row.account_metadata.loginMode
+          : undefined,
       accountExpiresAt: row.expires_at,
       externalAccountId: row.external_account_id,
       encryptedAccessToken: row.encrypted_access_token,
@@ -126,6 +183,7 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
     try {
       await client.query("BEGIN");
       await client.query("SELECT pg_advisory_xact_lock(hashtext($1))", [id]);
+      await this.lockPublication(client, id);
       const existing = await client.query<{ remote_post_id: string }>(
         `SELECT remote_post_id FROM publication_attempts
          WHERE scheduled_id = $1 AND remote_post_id IS NOT NULL
@@ -167,29 +225,34 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
   }
 
   async ensurePublished(id: string, remotePostId: string) {
-    await this.pool.query(
-      `WITH updated AS (
-         UPDATE scheduled_publications SET status = 'published', updated_at = NOW()
-         WHERE id = $1 RETURNING publication_id
-       )
-       UPDATE publications p
-       SET status = CASE
-         WHEN EXISTS (
-           SELECT 1 FROM scheduled_publications pending
-           WHERE pending.publication_id = p.id
-             AND pending.status NOT IN ('published', 'cancelled')
-         ) THEN 'scheduled'
-         ELSE 'published'
-       END, updated_at = NOW()
-       WHERE p.id = (SELECT publication_id FROM updated)`,
-      [id],
-    );
+    const client = await this.pool.connect();
+    try {
+      await client.query("BEGIN");
+      await this.lockPublication(client, id);
+      const schedule = await client.query<{ publication_id: string }>(
+        `UPDATE scheduled_publications SET status = 'published', updated_at = NOW()
+         WHERE id = $1 RETURNING publication_id`,
+        [id],
+      );
+      // A separate statement sees the updated schedule (unlike a sibling CTE).
+      await this.refreshPublicationStatus(
+        client,
+        schedule.rows[0]?.publication_id,
+      );
+      await client.query("COMMIT");
+    } catch (error) {
+      await client.query("ROLLBACK");
+      throw error;
+    } finally {
+      client.release();
+    }
   }
 
   async markPublished(id: string, attempt: number, result: PublishResult) {
     const client = await this.pool.connect();
     try {
       await client.query("BEGIN");
+      await this.lockPublication(client, id);
       await client.query(
         `UPDATE publication_attempts
          SET finished_at = NOW(), result = 'success', normalized_error = NULL, remote_post_id = $3
@@ -201,18 +264,9 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
          WHERE id = $1 RETURNING publication_id`,
         [id],
       );
-      await client.query(
-        `UPDATE publications p
-         SET status = CASE
-           WHEN EXISTS (
-             SELECT 1 FROM scheduled_publications pending
-             WHERE pending.publication_id = p.id
-               AND pending.status NOT IN ('published', 'cancelled')
-           ) THEN 'scheduled'
-           ELSE 'published'
-         END, updated_at = NOW()
-         WHERE p.id = $1`,
-        [schedule.rows[0]?.publication_id],
+      await this.refreshPublicationStatus(
+        client,
+        schedule.rows[0]?.publication_id,
       );
       await client.query("COMMIT");
     } catch (error) {
@@ -234,6 +288,7 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
     const client = await this.pool.connect();
     try {
       await client.query("BEGIN");
+      await this.lockPublication(client, id);
       await client.query(
         `UPDATE publication_attempts
          SET finished_at = NOW(), result = $3, normalized_error = $4
@@ -245,22 +300,9 @@ export class PostgresSocialPublicationRepository implements SocialPublicationRep
          WHERE id = $1 RETURNING publication_id`,
         [id, scheduleStatus],
       );
-      await client.query(
-        `UPDATE publications p
-         SET status = CASE
-           WHEN EXISTS (
-             SELECT 1 FROM scheduled_publications active
-             WHERE active.publication_id = p.id
-               AND active.status IN ('queued', 'publishing')
-           ) THEN 'scheduled'
-           WHEN EXISTS (
-             SELECT 1 FROM scheduled_publications failed
-             WHERE failed.publication_id = p.id AND failed.status = 'failed'
-           ) THEN 'failed'
-           ELSE 'published'
-         END, updated_at = NOW()
-         WHERE p.id = $1`,
-        [schedule.rows[0]?.publication_id],
+      await this.refreshPublicationStatus(
+        client,
+        schedule.rows[0]?.publication_id,
       );
       await client.query("COMMIT");
     } catch (cause) {

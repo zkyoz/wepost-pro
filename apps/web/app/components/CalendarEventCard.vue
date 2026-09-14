@@ -39,7 +39,7 @@ const accessibleName = computed(
 </script>
 
 <template>
-  <article class="calendar-event">
+  <article class="calendar-event" :class="`calendar-event--${event.status}`">
     <span class="status-badge" :class="`status-badge--${event.status}`">
       {{ PUBLICATION_STATUS_LABELS[event.status] }}
     </span>

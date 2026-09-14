@@ -183,7 +183,7 @@ export default class FacebookController {
       })
       const success = new URL(facebookConfig.successUrl)
       success.searchParams.set('facebook', 'connected')
-      response.redirect(success.toString())
+      response.redirect().withQs(false).toPath(success.toString())
     } catch (error) {
       logger.warn({
         event: 'social.facebook_oauth_failed',
